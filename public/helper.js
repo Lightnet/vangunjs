@@ -4,6 +4,7 @@
 function unixTime(){
   return parseInt((new Date().getTime() / 1000).toFixed(0))
 }
+//match with the Gun.state() = time for expire date cert
 function gunUnixTime(){
   return parseInt(new Date().getTime() )
 }
