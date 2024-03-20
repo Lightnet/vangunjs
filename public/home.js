@@ -45,13 +45,13 @@ const ElHome = () =>{
     }
   });
 
-  const ElAccessChatRoom = van.derive(()=>{
-    if(isLogin.val){
-      return button({ onclick: () => routeTo('chatroom') }, 'Chat Room');
-    }else{
-      return ' ';
-    }
-  });
+  // const ElAccessChatRoom = van.derive(()=>{
+  //   if(isLogin.val){
+  //     return button({ onclick: () => routeTo('chatroom') }, 'Chat Room');
+  //   }else{
+  //     return ' ';
+  //   }
+  // });
 
   const ElAccessGroupMessage = van.derive(()=>{
     if(isLogin.val){
@@ -74,8 +74,8 @@ const ElHome = () =>{
     ElAccessAccount,
     ' ',
     ElAccessPrivateMessage,
-    ' ',
-    ElAccessChatRoom,
+    //' ',
+    //ElAccessChatRoom,
     ' ',
     ElAccessGroupMessage,
   );

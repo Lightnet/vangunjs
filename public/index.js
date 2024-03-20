@@ -90,13 +90,13 @@ const App=()=>{
       'Private Message',
       ElPrivateMessage()
     ),
-    Route({ name: 'chatroom' },
-      button({ onclick: () => routeTo('home') }, 'Back To Home'), ' ',
-      'chat',
-    ),
+    //Route({ name: 'chatroom' },
+      //button({ onclick: () => routeTo('home') }, 'Back To Home'), ' ',
+      //'chat',
+    //),
     Route({ name: 'groupmessage' },
       button({ onclick: () => routeTo('home') }, 'Back To Home'), ' ',
-      'groupmessage',
+      'Group Message',
       ElGroupMessage()
     ),
   )
