@@ -88,7 +88,7 @@ const ElPriaveMessageBox = ()=>{
     
     const messageNodes = messages.val;
     if(messageNodes){
-      console.log(messageNodes);
+      //console.log(messageNodes);
       messageList.innerText = '';
       for (const [key, messageData] of messageNodes) {
         van.add(messageList, 

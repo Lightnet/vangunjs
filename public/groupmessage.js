@@ -13,11 +13,9 @@ const {
 } = van.tags;
 
 import { 
-  isLogin,
-  aliasState,
-  gunState,
-  publicKeyState
+  gunState
 } from '/context.js';
+import { routeTo } from '/vanjs-router.js';
 
 //console.log(Modal);
 
@@ -55,7 +53,6 @@ const ElGroupMessage = ()=>{
     ),
   ));
 
-
   return div(
     viewRender
   );
@@ -81,14 +78,17 @@ const ELGroupMessageMenu =({api})=>{
 
   van.derive(()=>{
     const nodes = groupMessages.val;
-    console.log(nodes);
-    if(nodes.size > 0){
+    //console.log(nodes);
+    //if(nodes.size > 0){
       GroupMessageSel.innerText = '';
       van.add(GroupMessageSel, option({disable:true},'Select Group Message'));
       for(const [key, groupData] of nodes){
-        van.add(GroupMessageSel, option({value:key},groupData.name));
+        if(groupData != "null"){
+          console.log("key: ",key);
+          van.add(GroupMessageSel, option({value:key},groupData.name));
+        }
       }
-    }
+    //}
   })
 
   function btnJoin(){
@@ -100,9 +100,13 @@ const ELGroupMessageMenu =({api})=>{
   }
 
   function btnCreate(){
-    console.log("create???")
+    //console.log("create???")
+    if(typeof GroupName.val === 'string' && GroupName.val.length === 0){
+      console.log("EMPTY!");
+      return;
+    }
     isModalCreate.val = true
-    console.log(GroupName.val);
+    //console.log(GroupName.val);
     createGroupMessage();
   }
 
@@ -123,25 +127,30 @@ const ELGroupMessageMenu =({api})=>{
     const gun = gunState.val;
 
     let roomPair = await Gun.SEA.pair()
-    console.log(roomPair)
+    //console.log(roomPair)
     let user = gun.user();
     //console.log(user)
-    console.log(user._.sea)
+    //console.log(user._.sea)
     let userPair = user._.sea;
 
     let sec = await Gun.SEA.secret(userPair.pub,userPair)//default?
-    console.log(sec)
-    let uuid = String.random(16);
+    //console.log(sec)
+    //const uuid = String.random(16);
+    //let _groupName =  uuid;
+    //if(GroupName.val != ""){
+      //_groupName = GroupName.val
+    //}
+    
     let roomData ={
       pub:roomPair.pub,
-      name:uuid || GroupName.val,
+      name:GroupName.val,
       key:roomPair
     }
 
     let encode = await Gun.SEA.encrypt(roomData,sec);
-    console.log(encode);
-
-    user.get("groupmessage").get(uuid).put(encode);
+    //console.log(encode);
+    const random_id = String.random(16);
+    user.get("groupmessage").get(random_id).put(encode);
 
     // Issue the wildcard certificate for all to write personal items to the 'profile'
     const cert = await Gun.SEA.certify( 
@@ -184,19 +193,56 @@ const ELGroupMessageMenu =({api})=>{
     const gun = gunState.val;
     const user = gun.user();
     let userPair = user._.sea;
+    groupMessages.val = new Map();
     user.get("groupmessage").map().once(async (data,key)=>{
       //console.log("data: ",data)
+      if (data == "null"){return;}
       if(data){
         let sec = await SEA.secret(userPair.pub,userPair)//default?
         let decode = await SEA.decrypt(data,sec);
         //console.log("decode: ", decode)
         if(decode){
-          groupMessages.val = new Map(groupMessages.val.set(decode.name, decode));
+          groupMessages.val = new Map(groupMessages.val.set(key, decode));
           //setRooms(state=>[...state,decode])
+          console.log(groupMessages.val);
         }
       }
     })
 
+  }
+
+  function testRoute(){
+    routeTo('groupmessageroom', [GroupID.val]);
+  }
+
+  function btnAddGroupId(){
+
+  }
+
+  function btnDeleteGroupId(){
+    console.log(GroupID.val);
+    const nodes = groupMessages.val;
+    for(const [key, groupData] of nodes){
+      console.log(groupData);
+      if(groupData != "null"){
+        if(groupData.pub == GroupID.val){
+          console.log("FOUND!", groupData);
+          console.log("key", key);
+          const gun = gunState.val;
+          const user = gun.user();
+
+          user.get("groupmessage").get(key).put("null");
+          GroupID.val = "";
+          let messageids = nodes.delete(key);
+          console.log(nodes);
+          //if(messageids){//bool
+            groupMessages.val = nodes; //update
+          //}
+          break;
+        }
+      }
+    }
+    refreshGroupMessages();
   }
 
   return div(
@@ -206,10 +252,11 @@ const ELGroupMessageMenu =({api})=>{
       GroupMessageSel,
       input({value:GroupID,oninput:e=>GroupID.val=e.target.value}),
       button({onclick:()=>btnJoin()},'Join'),
-      button('Add'),
-      button('Delete'),
+      button({onclick:()=>btnAddGroupId()},'Add'),
+      button({onclick:()=>btnDeleteGroupId()},'Delete'),
       button({onclick:()=>btnShowCreate()},'Create'),
-      button({onclick:()=>btnShowOptions()},'Options')
+      button({onclick:()=>btnShowOptions()},'Options'),
+      button({onclick:()=>testRoute()},'testRoute'),
     )
   );
 }

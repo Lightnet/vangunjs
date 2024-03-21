@@ -82,5 +82,5 @@ var gun = Gun({web: server.listen(config.port), peers: config.peers});
 // });
 
 //console.log('Relay peer started on port ' + config.port + ' with /gun');
-console.log('Relay http://127.0.0.1:3000');
-
+//console.log('Relay http://127.0.0.1:3000');
+console.log('Web: http://127.0.0.1:3000');

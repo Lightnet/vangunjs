@@ -18,7 +18,7 @@ import { btnSignOut } from './signout.js';
 import { ElPrivateMessage } from './privatemessage.js';
 import { gunUnixTime, gunUnixToDate, unixTime } from './helper.js';
 
-const {button, div, pre, a , li, p, ul} = van.tags;
+const {button, div, label} = van.tags;
 
 //console.log(vanX);
 //const obj = vanX.reactive({a: 1, b: 2})
@@ -28,7 +28,7 @@ const {button, div, pre, a , li, p, ul} = van.tags;
 //console.log(unixTime())
 //console.log(gunUnixToDate(Gun.state()))
 
-console.log(String.random(16));
+//console.log(String.random(16));
 
 //AppContext._version.val = "test";
 //console.log("init");
@@ -51,7 +51,7 @@ gunState.val = gun;
 //const gunState = AppContext._gun;
 
 //const userName = van.derive(() => AppContext.alias.val);
-
+// https://github.com/iuroc/vanjs-router
 const App=()=>{
 
   //const _isLogin = van.derive(() => {
@@ -100,6 +100,66 @@ const App=()=>{
       'Group Message',
       ElGroupMessage()
     ),
+    ()=>{
+      const roomID = van.state('000');
+      const msg = van.derive(()=>{
+        let text= roomID.val;
+        //console.log("TESTSTSET: ",text)
+        //console.log(typeof text);
+        return text;
+      });
+      return Route({
+        name: 'groupmessageroom', 
+        onLoad(route){
+          //console.log("ID: ",route.args);
+          let [id] = route.args;
+          console.log(typeof id);
+          console.log("room id: ",id);
+          roomID.val = id;
+        }
+      },
+      div('group Id: ', roomID),
+      //button("test"+groupID),
+      //button(groupID),
+      //button("test"+ msg ),
+      //label( msg ),
+      testKey({id:roomID})
+      )
+    }
+    // () => {
+    //   const listType = van.state('')
+    //   const listId = van.state('')
+    //   const welcome = van.state('')
+    //   return Route({
+    //       name: 'list',
+    //       onFirst() {
+    //           welcome.val = 'Welcome!'
+    //       },
+    //       onLoad(route) {
+    //           let [type, id] = route.args
+    //           listType.val = type
+    //           listId.val = id
+    //       }
+    //   },
+    //       button({ onclick: () => routeTo('home') }, 'Back To Home'), ' ',
+    //       welcome,
+    //       div('List Type: ', listType),
+    //       div('List Id: ', listId),
+    //   )
+    // }
   )
 }
+
+const testKey = ({id})=>{
+  //console.log("KEY", id);
+
+  const msg = van.derive(()=>{
+    console.log("derive id: ",id.val);
+    //console.log(id);
+  });
+
+
+  return label('TESTS '+ id);
+}
+
 van.add(document.body, App())

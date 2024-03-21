@@ -27,3 +27,11 @@
 # Links:
  * https://vanjs.org
  * https://github.com/amark/gun
+
+# GitHub / Links:
+ * https://vanjs.org/#community-add-ons
+ * https://github.com/Atmos4/van-element
+ * 
+
+# Refs:
+ * https://github.com/vanjs-org/van/discussions/257
