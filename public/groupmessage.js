@@ -236,13 +236,13 @@ const ELGroupMessageMenu =({api})=>{
           let messageids = nodes.delete(key);
           console.log(nodes);
           //if(messageids){//bool
-            groupMessages.val = nodes; //update
+            groupMessages.val = new Map(nodes); //update
           //}
           break;
         }
       }
     }
-    refreshGroupMessages();
+    //refreshGroupMessages();
   }
 
   return div(
@@ -250,7 +250,7 @@ const ELGroupMessageMenu =({api})=>{
       button({onclick:()=>refreshGroupMessages()},'refresh'),
       label("Group Keys:"),
       GroupMessageSel,
-      input({value:GroupID,oninput:e=>GroupID.val=e.target.value}),
+      input({value:GroupID,oninput:e=>GroupID.val=e.target.value,placeholder:"Room ID Key"}),
       button({onclick:()=>btnJoin()},'Join'),
       button({onclick:()=>btnAddGroupId()},'Add'),
       button({onclick:()=>btnDeleteGroupId()},'Delete'),
