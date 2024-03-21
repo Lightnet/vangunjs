@@ -23,11 +23,12 @@ const {button, div, pre, a , li, p, ul} = van.tags;
 //console.log(vanX);
 //const obj = vanX.reactive({a: 1, b: 2})
 //console.log(obj);
-console.log(Gun.state())
-console.log(gunUnixTime())
+//console.log(Gun.state())
+//console.log(gunUnixTime())
 //console.log(unixTime())
 //console.log(gunUnixToDate(Gun.state()))
 
+console.log(String.random(16));
 
 //AppContext._version.val = "test";
 //console.log("init");
