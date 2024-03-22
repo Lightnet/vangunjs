@@ -134,13 +134,7 @@ const ELGroupMessageMenu =({api})=>{
     let userPair = user._.sea;
 
     let sec = await Gun.SEA.secret(userPair.pub,userPair)//default?
-    //console.log(sec)
-    //const uuid = String.random(16);
-    //let _groupName =  uuid;
-    //if(GroupName.val != ""){
-      //_groupName = GroupName.val
-    //}
-    
+
     let roomData ={
       pub:roomPair.pub,
       name:GroupName.val,
@@ -153,9 +147,9 @@ const ELGroupMessageMenu =({api})=>{
     user.get("groupmessage").get(random_id).put(encode);
 
     // Issue the wildcard certificate for all to write personal items to the 'profile'
-    const cert = await Gun.SEA.certify( 
+    const cert_message = await Gun.SEA.certify( 
       '*',  // everybody is allowed to write
-      { '*':'message', '+': '*' }, // to the path that starts with 'profile' and along with the key has the user's pub in it
+      { '*':'message', '+': '*' }, // to the path that starts with 'message' and along with the key has the user's pub in it
       roomPair, //authority
       null, //no need for callback here
       { expiry: Gun.state() + (60*60*24*1000) } // Let's set a one day expiration period
@@ -173,14 +167,19 @@ const ELGroupMessageMenu =({api})=>{
     });
     */
 
+    // https://gun.eco/docs/SEA.certify
     // Authenticate with the room pair
-    
-    gunInstance.user().auth(roomPair, () => { 
+    gunInstance.user().auth(roomPair, async () => { 
        // Put the certificate into the room graph for ease of later use
        gunInstance.user()
           .get('certs')
           .get('message')
-          .put(cert);
+          .put(cert_message);
+      let enc = await SEA.encrypt(roomPair, userPair)
+      gunInstance.user()
+        .get('host')
+        .get(userPair.pub)
+        .put(enc);//store room host pub sea pair.
       //not safe
       gunInstance.user().get('alias').put(roomPair.pub)
       gunInstance.user().get('pub').put(roomPair.pub)
