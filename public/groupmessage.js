@@ -68,7 +68,7 @@ const ELGroupMessageMenu =({api})=>{
   const isModalCreate = van.state(true);
 
   function onChangeGroupMessageSel(e){
-    console.log(e.target.value)
+    //console.log(e.target.value)
     //GroupID.val = e.target.value;
     let groupData = groupMessages.val.get(e.target.value);
     if(groupData){
@@ -84,7 +84,7 @@ const ELGroupMessageMenu =({api})=>{
       van.add(GroupMessageSel, option({disable:true},'Select Group Message'));
       for(const [key, groupData] of nodes){
         if(groupData != "null"){
-          console.log("key: ",key);
+          //console.log("key: ",key);
           van.add(GroupMessageSel, option({value:key},groupData.name));
         }
       }
@@ -92,7 +92,10 @@ const ELGroupMessageMenu =({api})=>{
   })
 
   function btnJoin(){
-    api({action:"join", groupID:GroupID.val})
+    //api({action:"join", groupID:GroupID.val})
+    if(typeof GroupID.val === 'string' && GroupID.val.length != 0 ){
+      routeTo('groupmessageroom', [GroupID.val]);
+    }
   }
 
   function btnShowOptions(){
@@ -203,7 +206,7 @@ const ELGroupMessageMenu =({api})=>{
         if(decode){
           groupMessages.val = new Map(groupMessages.val.set(key, decode));
           //setRooms(state=>[...state,decode])
-          console.log(groupMessages.val);
+          //console.log(groupMessages.val);
         }
       }
     })
@@ -255,19 +258,32 @@ const ELGroupMessageMenu =({api})=>{
       button({onclick:()=>btnDeleteGroupId()},'Delete'),
       button({onclick:()=>btnShowCreate()},'Create'),
       button({onclick:()=>btnShowOptions()},'Options'),
-      button({onclick:()=>testRoute()},'testRoute'),
+      //button({onclick:()=>testRoute()},'testRoute'),
     )
   );
 }
 
 const ELGroupMessageRoom =({api,groupID})=>{
 
-  console.log("groupID:", groupID)
-
   const messages = van.state(new Map());
   const ElMessages = div({style:"backgroud-color:gray; with:600px;height:400px;"});
   const _groupID = van.state('');
   const message = van.state('');
+
+  //console.log("groupID:", groupID)
+  //console.log("groupID:", groupID)
+  van.derive(()=>{
+    //console.log("groupID:", groupID);
+    _groupID.val = groupID;
+  });
+
+  van.derive(()=>{
+    let id = _groupID.val;
+    if(typeof id === 'string' && id.length > 0){
+      console.log("id: ",id);
+      initGroupMessage();
+    }
+  });
 
   van.derive(()=>{
     ElMessages.innerText = '';
@@ -282,45 +298,57 @@ const ELGroupMessageRoom =({api,groupID})=>{
   })
 
   function callLeave(){
-    api({action:'leave'})
+    if(typeof api === 'function'){
+      api({action:'leave'});
+    }else{
+      routeTo('groupmessage');
+    }
   }
 
   async function initGroupMessage(){
-    console.log("init :", groupID);
-    _groupID.val = groupID;
-    
+    //console.log("init :", _groupID.val);
 
     const gun = gunState.val;
     const user = gun.user();
+    console.log(user);
+    if(!user.is){
+      console.log("user.is", user.is);
+      return;
+    }
     let userPair = user._.sea;
+    if(!userPair){
+      console.log("userPair", userPair);
+      return;
+    }
 
-    const room = gun.user(groupID);
+    const room = gun.user(_groupID.val);
     let who = await room.then() || {};//get alias data
-    console.log("room Data: ",who);
+    //console.log("room Data: ",who);
     if(!who.certs){console.log("No certs!");return;}
     let dec = await Gun.SEA.secret(who.epub, userPair);
     //const cert = await room.get('certs').get('message').then();
 
     room.get('message').get(userPair.pub).map().once(async (data,key)=>{
-      console.log("data: ", data);
-      console.log("key: ", key);
+      //console.log("data: ", data);
+      //console.log("key: ", key);
       let content = await Gun.SEA.decrypt(data.content, dec);
       console.log("content: ",content);
-      messages.val = new Map(messages.val.set(key, {content:content}))
+      if(content){//check if exist
+        messages.val = new Map(messages.val.set(key, {content:content}))
+      }
+      
     });
   }
-
-  initGroupMessage();
 
   async function sentMessage(){
     const gun = gunState.val;
     const user = gun.user();
     let userPair = user._.sea;
-    console.log("_groupID.val: ", _groupID.val);
+    //console.log("_groupID.val: ", _groupID.val);
     const room = gun.user(_groupID.val);
 
     let who = await room.then() || {};//get alias data
-    console.log("room Data: ",who);
+    //console.log("room Data: ",who);
     if(!who.certs){console.log("No certs!");return;}
     const cert = await room.get('certs').get('message').then();
 
@@ -335,21 +363,29 @@ const ELGroupMessageRoom =({api,groupID})=>{
     },{opt:{cert:cert}})
   }
 
+  //initGroupMessage();
+
+  function btnGetInfo(){
+    console.log(groupID)
+  }
+
   return div(
     div(
-      label("Public Key:"),
+      label("Room Id:"),
       label(_groupID.val),
       button({onclick:()=>callLeave()},'Leave'),
     ),
     ElMessages,
     div(
       input({valueL:message,oninput:e=>message.val=e.target.value}),
-      button({onclick:()=>sentMessage()},'Sent')  
+      button({onclick:()=>sentMessage()},'Sent'),
+      button({onclick:()=>btnGetInfo()},'info')  
     )
   )
 }
 
 
 export {
-  ElGroupMessage
+  ElGroupMessage,
+  ELGroupMessageRoom
 }

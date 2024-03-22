@@ -12,7 +12,7 @@ import { gunState } from '/context.js';
 import { ELSignin } from './signin.js';
 import { ELSignup } from './signup.js';
 import { ElHome } from './home.js';
-import { ElGroupMessage } from './groupmessage.js';
+import { ELGroupMessageRoom, ElGroupMessage } from './groupmessage.js';
 import { ElAccount } from './account.js';
 import { btnSignOut } from './signout.js';
 import { ElPrivateMessage } from './privatemessage.js';
@@ -58,6 +58,17 @@ const App=()=>{
     //console.log(isLogin.val);
   //})
 
+  const roomID = van.state('');
+  const viewRender = van.derive(()=>{
+    //console.log("roomID.val: ", roomID.val);
+    let roomId = roomID.val;
+    if(typeof roomId === 'string' && roomId.length > 0){
+      return  ELGroupMessageRoom({groupID:roomID.val});
+    }else{
+      return div('None!');
+    }
+  });
+
   return div(
     Route({ name: 'home' },
       ElHome()
@@ -101,52 +112,28 @@ const App=()=>{
       ElGroupMessage()
     ),
     ()=>{
-      const roomID = van.state('000');
-      const msg = van.derive(()=>{
-        let text= roomID.val;
-        //console.log("TESTSTSET: ",text)
-        //console.log(typeof text);
-        return text;
-      });
+      
       return Route({
         name: 'groupmessageroom', 
         onLoad(route){
           //console.log("ID: ",route.args);
           let [id] = route.args;
-          console.log(typeof id);
-          console.log("room id: ",id);
-          roomID.val = id;
+          //console.log(typeof id);
+          //console.log("room id: ",id);
+          if(typeof id === 'string' && id.length === 0){
+          }else{
+            //console.log("SET ROOM ID", id);
+            roomID.val = id;
+          }
         }
       },
-      div('group Id: ', roomID),
-      //button("test"+groupID),
-      //button(groupID),
-      //button("test"+ msg ),
-      //label( msg ),
-      testKey({id:roomID})
+      viewRender
+      //div('group Id: ', roomID),
+      
+      
+      //testKey({id:roomID})
       )
     }
-    // () => {
-    //   const listType = van.state('')
-    //   const listId = van.state('')
-    //   const welcome = van.state('')
-    //   return Route({
-    //       name: 'list',
-    //       onFirst() {
-    //           welcome.val = 'Welcome!'
-    //       },
-    //       onLoad(route) {
-    //           let [type, id] = route.args
-    //           listType.val = type
-    //           listId.val = id
-    //       }
-    //   },
-    //       button({ onclick: () => routeTo('home') }, 'Back To Home'), ' ',
-    //       welcome,
-    //       div('List Type: ', listType),
-    //       div('List Id: ', listId),
-    //   )
-    // }
   )
 }
 
