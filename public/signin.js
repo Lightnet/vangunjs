@@ -1,9 +1,7 @@
 // https://gun.eco/docs/Auth
 
 import {van} from '/dps.js';
-
 import { 
-  AppContext, 
   isLogin, 
   gunState, 
   aliasState,
@@ -22,8 +20,6 @@ const {
   label,
   textarea
 } = van.tags;
-
-//const gunState = AppContext._gun;
 
 const ELSignin = ()=>{
   const isPairLogin = van.state(false);
@@ -48,8 +44,6 @@ const EldefaultLogin= ()=>{
   const alias = van.state("test");
   const passphrase = van.state("012345678");
   const gun = gunState.val;
-
-  //console.log(AppContext.version.val);
 
   function login(){
     //console.log(versionState.val)
@@ -105,17 +99,25 @@ const EldefaultLogin= ()=>{
 
 const ElPairLogin= ()=>{
 
-  const pairKey = van.state('');
+  const pairKey = van.state('{}');
   const isBase64 = van.state(false);
   const isWorker = van.state(false);
-
   const worker1 = van.state('');
   const worker2 = van.state('');
+  const workPair = van.state('');
+  const ElWorkStatus = label('None');
 
   function btnPairLogin(){
     const gun = gunState.val;
     const user = gun.user();
-    const pair = JSON.parse(pairKey.val);
+    let pair = {};
+    if(isWorker.val){
+      console.log("WORK");
+      pair = workPair.val;
+      console.log(pair)
+    }else{
+      pair = JSON.parse(pairKey.val);
+    }
 
     user.auth(pair, (ack)=>{
       console.log(ack);
@@ -128,9 +130,36 @@ const ElPairLogin= ()=>{
       publicKeyState.val = ack.root.user.is.pub;
       routeTo('home');
     },{});
+    
   }
+  // Status Work Decode
+  van.derive(async ()=>{
+    ElWorkStatus.innerText = '';
+    if((worker1.val.length == 0) || (worker2.val.length == 0)){
+      van.add(ElWorkStatus,tr(td(label(' Status: None '))));
+      return;
+    }
 
-  
+    let sec = await Gun.SEA.work(worker1.val, worker2.val);
+    let result = await Gun.SEA.decrypt(pairKey.val,sec);
+    console.log(result);
+    if(result != null){
+      workPair.val = result;
+      van.add(ElWorkStatus,tr(td(label(' Status: PASS '))));
+    }else{
+      van.add(ElWorkStatus,tr(td(label(' Status: FAIL '))));
+    }
+  });
+
+  async function btnPaste(){
+    try {
+      const text = await navigator.clipboard.readText()
+      pairKey.val = text;
+      console.log('Text pasted.');
+    } catch (error) {
+      console.log('Failed to read clipboard');
+    }
+  }
 
   return div(
     table(
@@ -139,13 +168,15 @@ const ElPairLogin= ()=>{
         //   label('Base64:'),
         //   input({type:'checkbox',checked:isBase64,oninput:e=>isBase64.val=e.target.checked}),
         // ),
-        
+        tr(
+          button({onclick:()=>btnPaste()},'Paste Pair'),
+        ),
         tr(
           td(
             textarea({style:"width:256px;height:180px",value:pairKey,oninput:e=>pairKey.val=e.target.value})
           )
         ),
-
+        //WORK CHECK
         tr(
           label('Worker:'),
           input({type:'checkbox',checked:isWorker,oninput:e=>isWorker.val=e.target.checked}),
@@ -168,13 +199,21 @@ const ElPairLogin= ()=>{
             return ' ';
           }
         }),
-
+        van.derive(()=>{
+          if(isWorker.val){
+            return tr(
+              td(ElWorkStatus)
+            );
+          }else{
+            return ' ';
+          }
+        }),
+        //LOGIN
         tr(
           td(
             button({onclick:()=>btnPairLogin()},'Login')
           )
         ),
-
       )
     )
   );
