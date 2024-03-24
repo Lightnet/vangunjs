@@ -35,3 +35,46 @@
 
 # Refs:
  * https://github.com/vanjs-org/van/discussions/257
+
+# Notes:
+
+## Create pair user:
+```js
+var pair = await Gun.SEA.pair();
+const gunInstance = Gun(location.origin+"/gun");
+gunInstance.user().auth(pair, async function(ack){
+  console.log(ack);
+  let node = await gunInstance.user().then();
+  console.log(node); //by default empty graph
+});
+```
+ Reason for empty is for easy to develop graph as example chat room setup node graph. It need to verfity pair key to access check node links with other pair when write other pair graph with certs.
+
+ Down side is user must secure their pair keys offline.
+## Create user:
+
+```js
+const gunInstance = Gun(location.origin+"/gun");
+gunInstance.user().create("alias", "passphrase", function(ack){
+  // done creating user!
+  console.log(ack);
+  //does not return graph since it is register
+});
+```
+
+```js
+const gunInstance = Gun(location.origin+"/gun");
+gunInstance.user().auth("alias", "passphrase", async function(ack){
+  console.log(ack);
+  if(ack.err){
+    console.log("BAD LOGIN");
+    return;
+  }
+  let node = await gun.user().then();
+  console.log("node: ",node);
+  //alias
+  //auth
+  //epub
+  //pub
+});
+```

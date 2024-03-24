@@ -36,6 +36,7 @@ const ElGroupMessage = ()=>{
 const ELGroupMessageMenu =()=>{
   const closed = van.state(false);
   const groupName = van.state('');
+  const groupInfo = van.state('None');
   const GroupID = van.state('');
   const GroupMessageSel = select({style:"width:256px;",onchange:onChangeGroupMessageSel});
   const groupMessages = van.state(new Map());
@@ -136,6 +137,14 @@ const ELGroupMessageMenu =()=>{
       { expiry: Gun.state() + (60*60*24*1000) } // Let's set a one day expiration period
     );
 
+    const cert_pending = await Gun.SEA.certify( 
+      '*',  // everybody is allowed to write
+      { '*':'pending', '+': '*' }, // to the path that starts with 'message' and along with the key has the user's pub in it
+      roomPair, //authority
+      null, //no need for callback here
+      { expiry: Gun.state() + (60*60*24*1000) } // Let's set a one day expiration period
+    );
+
     const gunInstance = Gun(location.origin+"/gun");
     // https://gun.eco/docs/SEA.certify
 
@@ -152,23 +161,34 @@ const ELGroupMessageMenu =()=>{
     // Authenticate with the room pair
     gunInstance.user().auth(roomPair, async () => { 
        // Put the certificate into the room graph for ease of later use
-       gunInstance.user()
+      gunInstance.user()
           .get('certs')
           .get('message')
           .put(cert_message);
+      gunInstance.user()
+          .get('certs')
+          .get('pending')
+          .put(cert_pending);
       let enc = await SEA.encrypt(roomPair, userPair)
       gunInstance.user()
         .get('host')
         .get(userPair.pub)
         .put(enc);//store room host pub sea pair.
-      gunInstance.user()
+      gunInstance.user()//for user register access
         .get('pending')
         .get(userPair.pub)
         .put("true");
+
+      gunInstance.user()
+        .get('members')
+        .get(userPair.pub)
+        .put({role:"admin"});
+
       //not safe
-      gunInstance.user().get('alias').put(groupName.val)
-      gunInstance.user().get('pub').put(roomPair.pub)
-      gunInstance.user().get('information').put("None")
+      gunInstance.user().get('alias').put(groupName.val);
+      
+      gunInstance.user().get('information').put(groupInfo.val);
+      //gunInstance.user().get('pub').put(roomPair.pub)
       //gunInstance.user().get('epub').put(roomPair.epub)
     });
   }

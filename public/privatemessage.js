@@ -3,9 +3,7 @@ import { gunUnixToDate, unixTime, unixToDate } from './helper.js';
 import { routeTo } from '/vanjs-router.js';
 import { 
   isLogin,
-  aliasState,
   gunState,
-  publicKeyState
 } from '/context.js';
 import {van} from '/dps.js';
 const {
@@ -20,7 +18,6 @@ const {
   td,
   select,
   option,
-
 } = van.tags;
 
 const ElPrivateMessage = ()=>{
@@ -61,6 +58,8 @@ const ElPriaveMessageBox = ()=>{
 
   const publicKey = van.state('');
   const messages = van.state(new Map());
+  const message = van.state('');
+  const isDisable = van.state(false);
 
   const messageList = div();
   const publicKeys = van.state(new Map());
@@ -195,11 +194,15 @@ const ElPriaveMessageBox = ()=>{
 
         let content = await Gun.SEA.decrypt(data.content, dec);
         console.log(content);
-        if(content){
+        if(content){//make sure it not null or empty
           messages.val = new Map(messages.val.set(key,{date:key,content:content }))
         }
       })
     }
+  }
+
+  function sendMsg(){
+
   }
 
   return div(
@@ -218,7 +221,11 @@ const ElPriaveMessageBox = ()=>{
     div(
       button({onclick:()=>viewMessages()},'View Message')
     ),
-    messageList
+    messageList,
+    div(
+      input({value:message,oninput:e=>message.val=e.target.value}),
+      button({onclick:()=>sendMsg()},'Send')
+    ),
   );
 }
 

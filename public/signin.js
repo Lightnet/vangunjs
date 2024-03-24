@@ -26,9 +26,7 @@ const {
 //const gunState = AppContext._gun;
 
 const ELSignin = ()=>{
-  
   const isPairLogin = van.state(false);
-
   const viewRender = van.derive(()=>{
     if(isPairLogin.val){
       return ElPairLogin();
@@ -55,8 +53,7 @@ const EldefaultLogin= ()=>{
 
   function login(){
     //console.log(versionState.val)
-    var user = gun.user();
-    user.auth(alias.val, passphrase.val, function(ack){
+    gun.user().auth(alias.val, passphrase.val, async function(ack){
       // done creating user!
       //console.log(ack);
       if(ack.err){
@@ -67,6 +64,8 @@ const EldefaultLogin= ()=>{
       aliasState.val = ack.root.user.is.alias;
       publicKeyState.val = ack.root.user.is.pub;
       console.log("PUB: ", ack.root.user.is.pub)
+      //let node = await gun.user().then();
+      //console.log("node: ",node);
       routeTo('home');
     });
   }
@@ -107,6 +106,11 @@ const EldefaultLogin= ()=>{
 const ElPairLogin= ()=>{
 
   const pairKey = van.state('');
+  const isBase64 = van.state(false);
+  const isWorker = van.state(false);
+
+  const worker1 = van.state('');
+  const worker2 = van.state('');
 
   function btnPairLogin(){
     const gun = gunState.val;
@@ -126,19 +130,51 @@ const ElPairLogin= ()=>{
     },{});
   }
 
+  
+
   return div(
     table(
       tbody(
+        // tr(
+        //   label('Base64:'),
+        //   input({type:'checkbox',checked:isBase64,oninput:e=>isBase64.val=e.target.checked}),
+        // ),
+        
         tr(
           td(
             textarea({style:"width:256px;height:180px",value:pairKey,oninput:e=>pairKey.val=e.target.value})
           )
         ),
+
+        tr(
+          label('Worker:'),
+          input({type:'checkbox',checked:isWorker,oninput:e=>isWorker.val=e.target.checked}),
+        ),
+        van.derive(()=>{
+          if(isWorker.val){
+            return tr(
+              td(input({value:worker1,oninput:e=>worker1.val=e.target.value,placeholder:"Worker 1"}))
+            );
+          }else{
+            return ' ';
+          }
+        }),
+        van.derive(()=>{
+          if(isWorker.val){
+            return tr(
+              td(input({value:worker2,oninput:e=>worker2.val=e.target.value,placeholder:"Worker 2"}))
+            );
+          }else{
+            return ' ';
+          }
+        }),
+
         tr(
           td(
             button({onclick:()=>btnPairLogin()},'Login')
           )
         ),
+
       )
     )
   );

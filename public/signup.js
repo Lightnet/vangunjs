@@ -47,10 +47,13 @@ const ElDefaultSignUp =()=>{
   function login(){
     //console.log(versionState.val)
     const gun = gunState.val;
-    const user = gun.user();
-    user.create(alias.val, passphrase.val, function(ack){
-      // done creating user!
+    gun.user().create(alias.val, passphrase.val, async function(ack){
       console.log(ack);
+      if(ack.err){
+        console.log("ERROR!")
+        return;
+      }
+      // done creating user!
     });
   }
 
@@ -123,24 +126,39 @@ function save(filename, data) {
 
 const ElPairSignUp= ()=>{
 
-  const pairKey = van.state(null);
+  const pairKey = van.state('{}'); //string
   const isWorker = van.state(true);
+  const isBase64 = van.state(true);
+  const isDisplayQR = van.state(false);
+  const isDisplayQR2 = van.state(false);
 
-  const div_qr = div();
+  const worker1 = van.state('');
+  const worker2 = van.state('');
+
+  const EncodePair = van.state('');
+
+  //const div_qr = div();
 
   async function generatePair(){
     var pair = await Gun.SEA.pair()
     console.log(pair);
-    div_qr.innerText = '';
-
+    //div_qr.innerText = '';
     pairKey.val = JSON.stringify(pair);
-    van.add(div_qr, QRCode(pairKey.val));
+    //van.add(div_qr, QRCode(pairKey.val));
   }
 
-  function btndownload(){
-
+  async function btndownload(){
     //download('seapair.txt', pairKey.val);
-    save('seapair.txt', pairKey.val);
+    let hash = await Gun.SEA.work(pairKey.val, null, null, { name: 'SHA-256',encode:'hex'});
+    let fileName = 'SEA_PAIR_SHA-256_' + hash + '.txt';
+    save(fileName, pairKey.val);
+  }
+
+  async function btnWorkDownload(){
+    //download('seapair.txt', pairKey.val);
+    let hash = await Gun.SEA.work(EncodePair.val, null, null, { name: 'SHA-256',encode:'hex'});
+    let fileName = 'SEA_WORK_PAIR_SHA-256_' + hash + '.txt';
+    save(fileName, EncodePair.val);
   }
 
   async function copyPair(){
@@ -154,55 +172,155 @@ const ElPairSignUp= ()=>{
     }
   }
 
+  async function copyWorkPair(){
+    try {
+      await navigator.clipboard.writeText(EncodePair.val);
+      console.log('Content copied to clipboard');
+      /* Resolved - text copied to clipboard successfully */
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      /* Rejected - text failed to copy to the clipboard */
+    }
+    let hash = await Gun.SEA.work('text', null, null, { name: 'SHA-256' });
+    console.log(hash);
+  }
+
   function btnPairSignUp(){
-    const gun = gunState.val;
-    const user = gun.user();
-    user.create(JSON.parse(pairKey.val), function(ack){
+    const gunInstance = Gun(location.origin+"/gun");
+    console.log("pairKey.val: ",pairKey.val);
+    const pair = JSON.parse(pairKey.val);
+
+    //user.create(JSON.parse(pairKey.val), function(ack){
+    gunInstance.user().auth(pair, async function(ack){
       // done creating user!
       console.log(ack);
+      gunInstance.user().get('alias').put(pair.pub)
+      console.log(gunInstance.user());
+      let name = await gunInstance.user().get('alias').then();
+      console.log( "name: ", name);
+      let node = await gunInstance.user().then();
+      console.log(node);
+
+      let node2 = await gunInstance.user(pair.pub).then();
+      console.log(node2);
+
     });
   }
+
+  van.derive(async ()=>{
+    if((worker1.val.length == 0) || worker2.val.length == 0){
+      return;
+    }
+    let sec = await Gun.SEA.work(worker1.val, worker2.val);
+    let data = await Gun.SEA.encrypt(pairKey.val, sec);
+    //console.log(data);
+    //console.log(typeof data);
+    EncodePair.val = data
+  })
 
   return div(
     table(
       tbody(
-        tr(
-          td({colspan:2},
-            label('Worker'),
-            input({type:'checkbox'})
-          )
-        ),
-        tr(
-          td({colspan:2},
-            label('base64'),
-            input({type:'checkbox'})
-          )
-        ),
+        // tr(
+        //   td({colspan:2},
+        //     label('Base64'),
+        //     input({type:'checkbox',checked:isBase64,oninput:e=>isBase64.val=e.target.checked})
+        //   )
+        // ),
         tr(
           td({colspan:2},
             button({onclick:()=>generatePair()},'Generate Pair')
           )
         ),
-
         tr(
           td({colspan:2},
             textarea({style:"width:256px;height:180px",value:pairKey})
           ),
         ),
+        // QR CODE
         tr(
           td({colspan:2},
-            div_qr
+            label('QR'),
+            input({type:'checkbox',checked:isDisplayQR,oninput:e=>isDisplayQR.val=e.target.checked})
           )
         ),
+        van.derive(()=>{
+          if(isDisplayQR.val){
+            return tr(
+              td(
+                QRCode(pairKey.val)
+              )
+            );
+          }else{
+            return ' ';
+          }
+        }),
         tr({},
           td(
             button({onclick:()=>btndownload()},'Download'),
             button({onclick:()=>copyPair()},'Copy')
-          ),
+          )
+        ),
+        tr(
+          td({colspan:2},
+            label('Worker'),
+            input({type:'checkbox',checked:isWorker,oninput:e=>isWorker.val=e.target.checked})
+          )
+        ),
+        van.derive(()=>{
+          if(isWorker.val){
+            return tr(
+              td(input({value:worker1,oninput:e=>worker1.val=e.target.value,placeholder:"Worker 1"}))
+            );
+          }else{
+            return ' ';
+          }
+        }),
+
+        van.derive(()=>{
+          if(isWorker.val){
+            return tr(
+              td(input({value:worker2,oninput:e=>worker2.val=e.target.value,placeholder:"Worker 2"}))
+            );
+          }else{
+            return ' ';
+          }
+        }),
+        van.derive(()=>{
+          if(isWorker.val){
+            return tr(
+              textarea({style:"width:256px;height:180px",value:EncodePair})
+            );
+          }else{
+            return ' ';
+          }
+        }),
+        tr(
+          td({colspan:2},
+            label('QR Work'),
+            input({type:'checkbox',checked:isDisplayQR2,oninput:e=>isDisplayQR2.val=e.target.checked})
+          )
+        ),
+        van.derive(()=>{
+          if(isDisplayQR2.val == true && isWorker.val == true){
+            return tr(
+              QRCode(EncodePair.val)
+            );
+          }else{
+            return ' ';
+          }
+        }),
+        tr({},
+          td(
+            button({onclick:()=>btnWorkDownload()},'Download'),
+            button({onclick:()=>copyWorkPair()},'Copy')
+          )
+        ),
+        tr({},
           td(
             button({onclick:()=>btnPairSignUp()}, 'Register Pair')
           )
-        )
+        ),
       )
     )
   );
