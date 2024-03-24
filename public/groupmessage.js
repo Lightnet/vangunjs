@@ -16,56 +16,33 @@ import {
   gunState
 } from '/context.js';
 import { routeTo } from '/vanjs-router.js';
-
 //console.log(Modal);
 
 const ElGroupMessage = ()=>{
-  const closed = van.state(true);
+
   const view = van.state('lobby');
-
-  const groupID = van.state('');
-
-  function callAPI(data){
-    console.log(data)
-    if(data?.action=='join'){
-      console.log(data.groupID);
-      groupID.val = data.groupID;
-      view.val = 'room';
-    }
-    if(data?.action=='leave'){
-      view.val = 'lobby';
-    }
-  }
 
   const viewRender = van.derive(()=>{
     if(view.val == 'lobby'){
-      return ELGroupMessageMenu({api:callAPI});
-    }
-    if(view.val == 'room'){
-      return ELGroupMessageRoom({api:callAPI,groupID:groupID.val});
+      return ELGroupMessageMenu();
     }
   })
-
-  van.add(document.body, Modal({closed},
-    p("Hello, World!"),
-    div({style: "display: flex; justify-content: center;"},
-      button({onclick: () => closed.val = true}, "Ok"),
-    ),
-  ));
 
   return div(
     viewRender
   );
 }
 
-const ELGroupMessageMenu =({api})=>{
-  //const closed = van.state(true);
-  const GroupName = van.state('');
+const ELGroupMessageMenu =()=>{
+  const closed = van.state(false);
+  const groupName = van.state('');
   const GroupID = van.state('');
   const GroupMessageSel = select({style:"width:256px;",onchange:onChangeGroupMessageSel});
   const groupMessages = van.state(new Map());
 
   const isModalCreate = van.state(true);
+
+  const ElRoomInfo = div();
 
   function onChangeGroupMessageSel(e){
     //console.log(e.target.value)
@@ -95,6 +72,7 @@ const ELGroupMessageMenu =({api})=>{
     //api({action:"join", groupID:GroupID.val})
     if(typeof GroupID.val === 'string' && GroupID.val.length != 0 ){
       routeTo('groupmessageroom', [GroupID.val]);
+      closed.val = true;
     }
   }
 
@@ -104,12 +82,12 @@ const ELGroupMessageMenu =({api})=>{
 
   function btnCreate(){
     //console.log("create???")
-    if(typeof GroupName.val === 'string' && GroupName.val.length === 0){
+    if(typeof groupName.val === 'string' && groupName.val.length === 0){
       console.log("EMPTY!");
       return;
     }
     isModalCreate.val = true
-    //console.log(GroupName.val);
+    //console.log(groupName.val);
     createGroupMessage();
   }
 
@@ -118,7 +96,7 @@ const ELGroupMessageMenu =({api})=>{
     isModalCreate.val = false;
     van.add(document.body, Modal({closed:isModalCreate},
       p("Create Group Message!"),
-      input({value:GroupName, oninput:e=>GroupName.val=e.target.value}),
+      input({value:groupName, oninput:e=>groupName.val=e.target.value}),
       div({style: "display: flex; justify-content: center;"},
         button({onclick:()=>btnCreate()}, "Ok"),
         button({onclick:()=>isModalCreate.val=true}, "Cancel")
@@ -140,7 +118,7 @@ const ELGroupMessageMenu =({api})=>{
 
     let roomData ={
       pub:roomPair.pub,
-      name:GroupName.val,
+      name:groupName.val,
       key:roomPair
     }
 
@@ -183,10 +161,15 @@ const ELGroupMessageMenu =({api})=>{
         .get('host')
         .get(userPair.pub)
         .put(enc);//store room host pub sea pair.
+      gunInstance.user()
+        .get('pending')
+        .get(userPair.pub)
+        .put("true");
       //not safe
-      gunInstance.user().get('alias').put(roomPair.pub)
+      gunInstance.user().get('alias').put(groupName.val)
       gunInstance.user().get('pub').put(roomPair.pub)
-      gunInstance.user().get('epub').put(roomPair.epub)
+      gunInstance.user().get('information').put("None")
+      //gunInstance.user().get('epub').put(roomPair.epub)
     });
   }
 
@@ -213,12 +196,8 @@ const ELGroupMessageMenu =({api})=>{
 
   }
 
-  function testRoute(){
-    routeTo('groupmessageroom', [GroupID.val]);
-  }
-
   function btnAddGroupId(){
-
+    const gun = gunState.val;
   }
 
   function btnDeleteGroupId(){
@@ -247,10 +226,30 @@ const ELGroupMessageMenu =({api})=>{
     //refreshGroupMessages();
   }
 
-  return div(
+  van.derive(async ()=>{
+    console.log(GroupID.val);
+    const gun = gunState.val;
+    if(typeof GroupID.val === 'string' && GroupID.val.length ===0){
+      return;
+    }
+    ElRoomInfo.innerText = "";
+    let user = gun.user(GroupID.val);
+    let room = await user.then();
+    console.log(room);
+    let alias_pub = await user.get('host').then();
+    console.log(alias_pub);
+    van.add(ElRoomInfo, ElGroupInfo({
+      alias:room.alias,
+      pub: room.pub,
+      host: alias_pub,
+      pending:"None",
+    }))
+  });
+
+  return closed.val ? null : div(
     div(
-      button({onclick:()=>refreshGroupMessages()},'refresh'),
-      label("Group Keys:"),
+      button({onclick:()=>refreshGroupMessages()},'Refresh'),
+      label("Group Message Pub:"),
       GroupMessageSel,
       input({value:GroupID,oninput:e=>GroupID.val=e.target.value,placeholder:"Room ID Key"}),
       button({onclick:()=>btnJoin()},'Join'),
@@ -258,13 +257,37 @@ const ELGroupMessageMenu =({api})=>{
       button({onclick:()=>btnDeleteGroupId()},'Delete'),
       button({onclick:()=>btnShowCreate()},'Create'),
       button({onclick:()=>btnShowOptions()},'Options'),
-      //button({onclick:()=>testRoute()},'testRoute'),
-    )
+    ),
+    ElRoomInfo
   );
 }
 
-const ELGroupMessageRoom =({api,groupID})=>{
+const ElGroupInfo = ({
+  alias,
+  host,
+  pending,
+  pub,
+})=>{
 
+  return div(
+    div(
+      label("Group Name: "+alias)
+    ),
+    div(
+      label("Public Key: " + pub)
+    ),
+    div(
+      label("Host:"+ host)
+    ),
+    div(
+      label("Pending:" + pending)
+    )
+  )
+};
+
+
+const ELGroupMessageRoom =({api,groupID})=>{
+  const closed = van.state(false);//this will clean up I think.
   const messages = van.state(new Map());
   const ElMessages = div({style:"backgroud-color:gray; with:600px;height:400px;"});
   const _groupID = van.state('');
@@ -302,6 +325,7 @@ const ELGroupMessageRoom =({api,groupID})=>{
       api({action:'leave'});
     }else{
       routeTo('groupmessage');
+      closed.val = true;
     }
   }
 
@@ -369,7 +393,7 @@ const ELGroupMessageRoom =({api,groupID})=>{
     console.log(groupID)
   }
 
-  return div(
+  return closed.val ? null : div(
     div(
       label("Room Id:"),
       label(_groupID.val),

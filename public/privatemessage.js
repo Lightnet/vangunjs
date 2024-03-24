@@ -85,7 +85,6 @@ const ElPriaveMessageBox = ()=>{
   });
 
   van.derive(()=>{
-    
     const messageNodes = messages.val;
     if(messageNodes){
       //console.log(messageNodes);
@@ -400,6 +399,25 @@ const ElPriaveMessageBoxOptions = ()=>{
   const numExpire = van.state(0);
   const numExpireDate = label('0');
 
+  const currentExpireDate = label('Not Checked!');
+
+  function getCurrentExpireDate(){
+    const gun = gunState.val;
+    gun.user()
+    .get('certs')
+    .get('privatemessage').once((data,key)=>{
+      console.log("data: ", data);
+      //console.log("key: ", key);
+      if(data){
+        let timeexp = parseInt(data.split(",")[1].split(":")[1]);
+        //console.log(gunUnixToDate(timeexp));
+        currentExpireDate.innerText = gunUnixToDate(timeexp);
+      }
+      
+    })
+  }
+
+
   van.derive(()=>{
     let expireDate = 0;
     if(numDays.val > 0){
@@ -441,12 +459,37 @@ const ElPriaveMessageBoxOptions = ()=>{
     .put(cert);
   }
 
+  async function btnSetExpireDateCert(){
+    const gun = gunState.val;
+    const user = gun.user();
+
+    const cert = await Gun.SEA.certify( 
+      '*',  // everybody is allowed to write
+      { '*':'privatemessage', '+': '*' }, // to the path that starts with 'profile' and along with the key has the user's pub in it
+      user._.sea, //authority
+      null, //no need for callback here
+      { expiry: numExpire.val }
+    );
+
+    gun.user()
+    .get('certs')
+    .get('privatemessage')
+    .put(cert);
+
+    console.log(numExpire.val);
+  }
+
   return div(
     div(
       label('Never let day more than 30 days else the graph node is ruin.'),
     ),
     div(
-      button({onclick:()=>btnOneDayCert()},' 1 Day Certify. ')
+      button({onclick:()=>getCurrentExpireDate()},'Current Expire Date:'),
+      ' ',
+      currentExpireDate
+    ),
+    div(
+      button({onclick:()=>btnOneDayCert()},' 1 Day Certify ')
     ),
     div(
       label('Day:'),
@@ -455,7 +498,7 @@ const ElPriaveMessageBoxOptions = ()=>{
       input({type:'number',value:numMinutes,oninput:e=>numMinutes.val=e.target.value,min:0, max:60}),
       label('Seconds:'),
       input({type:'number',value:numSeconds,oninput:e=>numSeconds.val=e.target.value,min:0, max:60}),
-      button({onclick:()=>btnOneDayCert()},'Set Certify'),
+      button({onclick:()=>btnSetExpireDateCert()},'Set Certify'),
       label(' Expire Date: '),
       numExpireDate
     )

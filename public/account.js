@@ -55,6 +55,15 @@ const accountInfo = ()=>{
   const alias = van.derive(()=> aliasState.val);
   const publicKey = van.derive(()=> publicKeyState.val);
 
+  async function copyKey(){
+    try {
+      await navigator.clipboard.writeText(publicKeyState.val);
+      console.log('Content copied to clipboard');
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  }
+
   return div(
     table(
       tbody(
@@ -68,10 +77,10 @@ const accountInfo = ()=>{
         ),
         tr(
           td(
-            label('Public Key:')
+            button({onclick:()=>copyKey()},'Public Key:')
           ),
           td(
-            input({value:publicKey,readonly:true}, )
+            input({value:publicKey,readonly:true})
           )
         ),
       )
