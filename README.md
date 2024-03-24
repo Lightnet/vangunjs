@@ -24,7 +24,7 @@
       * [x] sea work (encode (param1, param2))
       * [x] pair login
       * [x] QR Code
-      * [] download file
+      * [x] download file
   * sign out (wip)
   * private message (wip)
     * [x] pub (look up for access expire graph node key)
@@ -39,12 +39,15 @@
   * [ ] group message (wip)
     * [ ] create group (wip)
     * [ ] join ( wip )
+    * [ ] add ( wip )
+    * [ ] delete ( wip )
     * [ ] admin ( N/A )
       * [ ] member list
       * [ ] pending access
       * [ ] encrypt key ( encode message, current public)
       * [ ] certify key (access to graph node write)
       * [ ] blacklist
+      * [ ] delete ( N/A , is it possible? )
 
 # Blacklist:
  User will have certify keys if they are blacklist unless the code use filter and custom. So there no way to delete since it snyc with peer to peer network. Only way is to build round about ways. If they manage to save before remove the only way is set up.
