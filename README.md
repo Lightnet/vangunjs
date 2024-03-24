@@ -2,21 +2,23 @@
 
 # License : MIT
 
-# Information:
-  Rebuild from other project for gun.js sea.js for minimal chat messages. ES6 module javascript.
+# Created By: Lightnet
 
-  Working on nodejs and bun.js (N/A)
+# Information:
+  Rebuild from other project for gun.js sea.js for minimal chat messages. ES6 module javascript. Working on nodejs and bun.js (N/A)
+
+
 
 # Features:
  * UI
-  * [] sign in (wip)
+  * [ ] sign in (wip)
     * [x] alias (name, passphrase)
     * [x] pair (json {pub, epub, epriv, priv})
       * [x] sea work (encode (param1, param2))
-      * [x] download file
+      * [ ] upload file
       * [x] paste pair
-      * [] QR Code
-  * [] sign up (wip)
+      * [ ] QR Code
+  * [ ] sign up (wip)
     * [x] alias (name, passphrase)
     * [x] pair (json {pub, epub, epriv, priv})
       * [x] sea work (encode (param1, param2))
@@ -33,16 +35,32 @@
   * [x] account
     * [x] change passphrase
     * [x] hint
-    * [] profile
-  * [] group message (wip)
-    * [] create group (wip)
-    * [] join ( wip )
-    * [] admin ( N/A )
-      * [] member list
-      * [] pending access
-      * [] encrypt key ( encode message, current public)
-      * [] certify key (access to graph node write)
-      * [] blacklist 
+    * [ ] profile
+  * [ ] group message (wip)
+    * [ ] create group (wip)
+    * [ ] join ( wip )
+    * [ ] admin ( N/A )
+      * [ ] member list
+      * [ ] pending access
+      * [ ] encrypt key ( encode message, current public)
+      * [ ] certify key (access to graph node write)
+      * [ ] blacklist
+
+# Blacklist:
+ User will have certify keys if they are blacklist unless the code use filter and custom. So there no way to delete since it snyc with peer to peer network. Only way is to build round about ways. If they manage to save before remove the only way is set up.
+
+ Example below.
+```js
+  node.get('message').map().once((data,key)=>{
+    //this will check alias pub key if match will ingore message.
+    let isBan = node.get('blacklist').get(key).get('ban').then();//alias pub
+    if(isBan){//
+      return;
+    }
+    //...
+  })
+```
+  Note it will query and will use power a bit. I think. Well there are different way to handle I think.
 
 # File size:
  Current in development build.
@@ -53,19 +71,15 @@
    * van-ui
    * van-x
 
-# Links:
+# Refs / GitHub / Links:
  * https://vanjs.org
- * https://github.com/amark/gun
-
-# GitHub / Links:
  * https://vanjs.org/#community-add-ons
+ * https://github.com/amark/gun 
  * https://github.com/Atmos4/van-element
- * 
-
-# Refs:
  * https://github.com/vanjs-org/van/discussions/257
 
 # Notes:
+ * Keep it simple.
 
 ## Create pair user:
 ```js
