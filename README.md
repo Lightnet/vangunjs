@@ -7,7 +7,7 @@
 # Information:
   Rebuild from other project for gun.js sea.js for minimal chat messages. ES6 module javascript. Working on nodejs and bun.js (N/A)
 
-
+  By using the [vanjs](vanjs.org) to reduce html set up. To create user interface in javascript module browser. I use jquery before. So it almost but it has more features.
 
 # Features:
  * UI
