@@ -8,6 +8,7 @@ import {
   publicKeyState
 } from '/context.js';
 import { routeTo } from '/vanjs-router.js';
+import { Modal, MessageBoard } from "vanjs-ui";
 
 const {
   div, 
@@ -44,6 +45,7 @@ const EldefaultLogin= ()=>{
   const alias = van.state("test");
   const passphrase = van.state("012345678");
   const gun = gunState.val;
+  const board = new MessageBoard({top: "20px"})
 
   function login(){
     //console.log(versionState.val)
@@ -51,9 +53,11 @@ const EldefaultLogin= ()=>{
       // done creating user!
       //console.log(ack);
       if(ack.err){
+        board.show({message: "Failed Login!", durationSec: 1})
         console.log("BAD LOGIN");
         return;
       }
+      board.show({message: "Passed Login!", durationSec: 1})
       isLogin.val = true;
       aliasState.val = ack.root.user.is.alias;
       publicKeyState.val = ack.root.user.is.pub;

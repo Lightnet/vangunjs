@@ -1,6 +1,6 @@
 import {van} from '/dps.js';
 
-import { AppContext, gunState } from '/context.js';
+import { gunState } from '/context.js';
 import { QRCode } from '/qrcode.min.js';
 
 const {
@@ -14,12 +14,12 @@ const {
   label,
   textarea
 } = van.tags;
+import { routeTo } from '/vanjs-router.js';
+import { Modal, MessageBoard } from "vanjs-ui";
 
 const ELSignup = ()=>{
 
   const isPairLogin = van.state(true);
-  
-
   const viewRender = van.derive(()=>{
     if(isPairLogin.val){
       return ElPairSignUp();
@@ -38,29 +38,27 @@ const ELSignup = ()=>{
 }
 
 const ElDefaultSignUp =()=>{
+  const board = new MessageBoard({top: "20px"});
   const alias = van.state("");
   const passphrase = van.state("012345678");
-  const gun = AppContext.gun.val;
 
-  console.log(AppContext.version.val);
-
-  function login(){
+  function btnSignUp(){
     //console.log(versionState.val)
     const gun = gunState.val;
     gun.user().create(alias.val, passphrase.val, async function(ack){
       console.log(ack);
       if(ack.err){
-        console.log("ERROR!")
+        //console.log("ERROR!");
+        board.show({message: ack.err, durationSec: 2});
         return;
       }
       // done creating user!
+      board.show({message: "Create Alias User!", durationSec: 2});
     });
   }
 
-  function Cancel(){
-    //console.log()
-    AppContext._version.val = "ts"
-    AppContext._alias.val = "ges"
+  function btnCancel(){
+    routeTo('home')
   }
   
   return div(
@@ -84,10 +82,10 @@ const ElDefaultSignUp =()=>{
         ),
         tr(
           td(
-            button({onclick:()=>login()},'Register'),      
+            button({onclick:()=>btnSignUp()},'Register'),      
           ),
           td(
-            button({onclick:()=>Cancel()},'Cancel'),
+            button({onclick:()=>btnCancel()},'Cancel'),
           )
         )
       )
@@ -125,9 +123,9 @@ function save(filename, data) {
 }
 
 const ElPairSignUp= ()=>{
-
+  const board = new MessageBoard({top: "20px"});
   const pairKey = van.state('{}'); //string
-  const isWorker = van.state(true);
+  const isWorker = van.state(false);
   const isBase64 = van.state(true);
   const isDisplayQR = van.state(false);
   const isDisplayQR2 = van.state(false);
@@ -165,6 +163,7 @@ const ElPairSignUp= ()=>{
     try {
       await navigator.clipboard.writeText(pairKey.val);
       console.log('Content copied to clipboard');
+      board.show({message: "Copy!", durationSec: 2});
       /* Resolved - text copied to clipboard successfully */
     } catch (err) {
       console.error('Failed to copy: ', err);
@@ -176,6 +175,7 @@ const ElPairSignUp= ()=>{
     try {
       await navigator.clipboard.writeText(EncodePair.val);
       console.log('Content copied to clipboard');
+      board.show({message: "Copy!", durationSec: 2});
       /* Resolved - text copied to clipboard successfully */
     } catch (err) {
       console.error('Failed to copy: ', err);
@@ -187,26 +187,27 @@ const ElPairSignUp= ()=>{
 
   function btnPairSignUp(){
     const gunInstance = Gun(location.origin+"/gun");
-    console.log("pairKey.val: ",pairKey.val);
+    //console.log("pairKey.val: ",pairKey.val);
     const pair = JSON.parse(pairKey.val);
 
     //user.create(JSON.parse(pairKey.val), function(ack){
     gunInstance.user().auth(pair, async function(ack){
       // done creating user!
       console.log(ack);
-      gunInstance.user().get('alias').put(pair.pub)
-      console.log(gunInstance.user());
-      let name = await gunInstance.user().get('alias').then();
-      console.log( "name: ", name);
-      let node = await gunInstance.user().then();
-      console.log(node);
 
-      let node2 = await gunInstance.user(pair.pub).then();
-      console.log(node2);
-
+      board.show({message: "Auth Pair!", durationSec: 2});
+      //gunInstance.user().get('alias').put(pair.pub)
+      //console.log(gunInstance.user());
+      //let name = await gunInstance.user().get('alias').then();
+      //console.log( "name: ", name);
+      //let node = await gunInstance.user().then();
+      //console.log(node);
+      //let node2 = await gunInstance.user(pair.pub).then();
+      //console.log(node2);
     });
   }
 
+  //decode while input of worker 1 and 2.
   van.derive(async ()=>{
     if((worker1.val.length == 0) || worker2.val.length == 0){
       return;
@@ -295,14 +296,20 @@ const ElPairSignUp= ()=>{
             return ' ';
           }
         }),
-        tr(
-          td({colspan:2},
-            label('QR Work'),
-            input({type:'checkbox',checked:isDisplayQR2,oninput:e=>isDisplayQR2.val=e.target.checked})
-          )
-        ),
         van.derive(()=>{
-          if(isDisplayQR2.val == true && isWorker.val == true){
+          if(isWorker.val){
+            return tr(
+              td({colspan:2},
+                label('QR Work'),
+                input({type:'checkbox',checked:isDisplayQR2,oninput:e=>isDisplayQR2.val=e.target.checked})
+              )
+            );
+          }else{
+            return ' ';
+          }
+        }),
+        van.derive(()=>{
+          if(isWorker.val==true && isDisplayQR2.val == true){
             return tr(
               QRCode(EncodePair.val)
             );
@@ -310,12 +317,18 @@ const ElPairSignUp= ()=>{
             return ' ';
           }
         }),
-        tr({},
-          td(
-            button({onclick:()=>btnWorkDownload()},'Download'),
-            button({onclick:()=>copyWorkPair()},'Copy')
-          )
-        ),
+        van.derive(()=>{
+          if(isWorker.val){
+            return tr({},
+              td(
+                button({onclick:()=>btnWorkDownload()},'Download'),
+                button({onclick:()=>copyWorkPair()},'Copy')
+              )
+            );
+          }else{
+            return ' ';
+          }
+        }),
         tr({},
           td(
             button({onclick:()=>btnPairSignUp()}, 'Register Pair')
