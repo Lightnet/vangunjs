@@ -2,7 +2,6 @@
 import {van, routeTo} from '/dps.js';
 
 import { 
-  AppContext, 
   isLogin,
   aliasState 
 } from '/context.js';

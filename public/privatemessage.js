@@ -5,6 +5,7 @@ import {
   isLogin,
   gunState,
 } from '/context.js';
+import { Modal, MessageBoard } from "vanjs-ui";
 import {van} from '/dps.js';
 const {
   button, 
@@ -56,12 +57,14 @@ const ElPrivateMessage = ()=>{
 
 const ElPriaveMessageBox = ()=>{
 
+  const board = new MessageBoard({top: "20px"})
+
   const publicKey = van.state('');
   const messages = van.state(new Map());
   const message = van.state('');
-  const isDisable = van.state(false);
+  const isAccess = van.state(true);
 
-  const messageList = div();
+  const messageList = div({style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"});
   const publicKeys = van.state(new Map());
 
   const aliasNode = label('None');
@@ -70,7 +73,7 @@ const ElPriaveMessageBox = ()=>{
   const ElPublicKeys = select({style:"width:200px;",onchange:(e)=>onChangePublicKeys(e)})
 
   van.derive(()=>{
-    let userNodes = publicKeys.val;
+    const userNodes = publicKeys.val;
     //console.log(userNodes);
     if(userNodes){
       ElPublicKeys.innerText = '';
@@ -82,7 +85,7 @@ const ElPriaveMessageBox = ()=>{
       }
     }
   });
-
+  /*
   van.derive(()=>{
     const messageNodes = messages.val;
     if(messageNodes){
@@ -99,13 +102,15 @@ const ElPriaveMessageBox = ()=>{
       }
     }
   })
+  */
 
   function onChangePublicKeys(e){
+    messages.val = new Map();
     publicKey.val = e.target.value;
     //console.log(e.target.value);
     //console.log(publicKeys.val)
 
-    const userNodes = publicKeys.val;
+    const userNodes = new Map(publicKeys.val);
     // ARRAY
     //for(var i = 0; i < userNodes.length; i++ ){
       //if(e.target.value == publicKeys.val[i].pub){
@@ -118,32 +123,32 @@ const ElPriaveMessageBox = ()=>{
     // MAP
     let userData = userNodes.get(e.target.value);//public key
     if(userData){//user {alias:userNode.alias,pub:id,cert:certdata};
-      //console.log("on Change userData: ",userData);
+      console.log("on Change userData: ",userData);
       aliasNode.innerText = userData.alias;
-      expireNode.innerText = userData.cert;
+      expireNode.innerText = gunUnixToDate(parseInt(userData.cert)) + " > " + gunUnixToDate(Gun.state());
+      console.log(typeof expireNode.innerText);
+      console.log(expireNode.innerText);
+      if(userData.cert != "None"){
+        console.log(userData.cert);
+        if(parseInt(userData.cert) > Gun.state()){
+          isAccess.val = true;
+        }else{
+          isAccess.val = false;
+        }
+      }else{
+        isAccess.val = false;
+      }
     }
   }
 
   //https://github.com/vanjs-org/van/discussions/220
-  function publicKeysAdd(data){
-    // ARRAY
-    //let userNodes = publicKeys.val;
-    //userNodes.push(data);
-    //publicKeys.val = [...publicKeys.val];
-    
-    // MAP
-    let userNodes = publicKeys.val;
-    publicKeys.val = new Map(userNodes.set(data.pub, data));
-
-    //console.log(publicKeys.val);
-  }
 
   function UpdatePublicMessages(){
     const gun = gunState.val;
     const user = gun.user();
     //console.log(user)
     ElPublicKeys.innerText = '';
-    van.add(ElPublicKeys, option({value:'None'},'Select Alias'));
+    van.add(ElPublicKeys, option({value:''},'Select Alias'));
     if(user.is){
       user.get('privatemessage').map().once( async (data,id)=>{
         //console.log("=====>");
@@ -163,14 +168,15 @@ const ElPriaveMessageBox = ()=>{
             let timeexp = parseInt(cert.split(",")[1].split(":")[1]);
             //console.log(gunUnixToDate(timeexp));
             //console.log(JSON.parse(cert));
-            certdata = gunUnixToDate(timeexp);
+            //certdata = gunUnixToDate(timeexp);
+            certdata = timeexp;
           }
-
-          publicKeysAdd({
+          //publicKeys.val = new Map(publicKeys.val.set(data.pub, data));
+          publicKeys.val = new Map(publicKeys.val.set(id, {
             alias:userNode.alias,
             pub:id,
             cert:certdata
-          });
+          }));
         }
       });
     }
@@ -201,9 +207,75 @@ const ElPriaveMessageBox = ()=>{
     }
   }
 
-  function sendMsg(){
+  async function sendMsg(){
+    console.log("SEND!");
+    const gun = gunState.val;
+    if(gun){
+      let timeStamp = Gun.state();
+      let gunUser = gun.user();
+      let pkey = await gunUser.get('pub');
+      console.log('pkey:',pkey)
+      
+      let to = gun.user(publicKey.val);//get alias
+      let who = await to.then() || {};//get alias data
+      if(!who.alias){console.log("No Alias!");return;}
+      const cert = await to.get('certs').get('privatemessage').then();
+      console.log(cert);
+
+      let sec = await Gun.SEA.secret(who.epub, gunUser._.sea); // Diffie-Hellman
+      let enc_content = await Gun.SEA.encrypt(message.val, sec); //encrypt message
+      //let enc_subject = await gun.SEA.encrypt(subject, sec); //encrypt message
+      //console.log("enc.....");
+      //console.log(enc);
+
+      //console.log("sec.....");
+      //console.log(sec)
+      await gun.get('~'+publicKey.val) 
+        .get('privatemessage')
+        .get(pkey)
+        .get(timeStamp).put({
+          content:enc_content
+        },ack=>{
+          console.log(ack);
+          if(ack.err){
+            console.log('ERROR GUN PUT...');
+            //sentStatus.innerText = "Error | Cert Fail!";
+            board.show({message: "Cert Fail!", durationSec: 1});
+            return;
+          }
+          console.log('Gun Message Put...');
+          //sentStatus.innerText = "Put | Cert Pass!";
+          board.show({message: "Cert Pass!", durationSec: 1});
+        },{opt:{cert:cert}});
+
+    }else{
+      console.log('gun error...');
+    }
+  }
+
+  function toggleScroll(){
 
   }
+
+  const scrollToBottom = (id) => {
+    const element = document.getElementById(id);
+    //console.log(element);
+    if(element){
+      console.log("move?")
+      element.scrollTop = element.scrollHeight;
+    }
+  }
+  //https://stackoverflow.com/questions/11715646/scroll-automatically-to-the-bottom-of-the-page
+  function messageScrollBar(){
+    scrollToBottom("chatmessage");
+  }
+
+  van.derive(()=>{
+    const messageNodes = messages.val;
+    setTimeout(()=>{
+      messageScrollBar();
+    },100);
+  });
 
   return div(
     div(
@@ -221,11 +293,38 @@ const ElPriaveMessageBox = ()=>{
     div(
       button({onclick:()=>viewMessages()},'View Message')
     ),
-    messageList,
-    div(
-      input({value:message,oninput:e=>message.val=e.target.value}),
-      button({onclick:()=>sendMsg()},'Send')
-    ),
+    //messageList,
+    van.derive(()=>{
+      const messageNodes = messages.val;
+      //console.log( messageNodes);
+      let messageList = [];
+      messageNodes.forEach((data, key) => {
+        messageList.push(
+        div({id:key},
+        label(unixToDate(parseInt(data.date))),
+        label(" : "),
+        label(data.content),
+        ));
+      });
+      // setTimeout(()=>{
+      //   messageScrollBar();
+      // },500);
+      //console.log(messageList);
+      return div({id:"chatmessage",style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"},
+        messageList
+      );
+    }),
+    van.derive(()=>{
+      if(isAccess.val){
+        return div(
+          input({value:message,oninput:e=>message.val=e.target.value}),
+          button({onclick:()=>sendMsg()},'Send'),
+          button({onclick:()=>toggleScroll()},'Auto Scroll'),
+        )
+      }else{
+        return ' ';
+      }
+    }),
   );
 }
 
@@ -380,12 +479,18 @@ const ElPriaveMessageCompose = ()=>{
             textarea({style:"width:256px;height:80px", value:message,oninput:e=>message.val=e.target.value})
           )
         ),
-        tr(
-          td({colspan:2},
-            button({onclick:()=>btnSend()},'Send'),
-            button({onclick:()=>btnDraft()},'Draft')
-          )
-        ),
+        van.derive(()=>{
+          if (isAccess.val){
+          return tr(
+            td({colspan:2},
+              button({onclick:()=>btnSend()},'Send'),
+              button({onclick:()=>btnDraft()},'Draft')
+            )
+          );
+          }else{
+            return ' ';
+          }
+        }),
         tr(
           td(
             label('Send Status:')

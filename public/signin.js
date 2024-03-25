@@ -57,7 +57,7 @@ const EldefaultLogin= ()=>{
         console.log("BAD LOGIN");
         return;
       }
-      board.show({message: "Passed Login!", durationSec: 1})
+      board.show({message: "Passed Login!", durationSec: 1});
       isLogin.val = true;
       aliasState.val = ack.root.user.is.alias;
       publicKeyState.val = ack.root.user.is.pub;

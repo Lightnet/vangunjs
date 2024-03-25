@@ -89,7 +89,7 @@ const App=()=>{
     ),
     Route({ name: 'signout' },
       button({ onclick: () => routeTo('home') }, 'Back To Home'), ' ',
-      'Sign Out',
+      ' Sign Out ',
       btnSignOut()
     ),
     Route({ name: 'account' },

@@ -1,18 +1,31 @@
 
 
-import { gunState } from '/context.js';
+
 import { van, routeTo } from '/dps.js';
-const {button, div, pre, a , li, p, ul} = van.tags;
+
+import { 
+  gunState,
+  isLogin,
+  aliasState,
+  publicKeyState
+} from '/context.js';
+import { MessageBoard } from "vanjs-ui";
+
+const {button} = van.tags;
 
 const btnSignOut = ()=>{
+  const board = new MessageBoard({top: "20px"})
+
   function signout(){
     const gun = gunState.val;
-    const user = gun.user();
-    user.leave();
-    
+    gun.user().leave();
+    isLogin.val = false;
+    aliasState.val = 'Guest';
+    publicKeyState.val = '';
+    board.show({message: "Logout!", durationSec: 1});
     routeTo('home');
   }
-  return button({ onclick: () => signout() }, 'Logout');
+  return button({onclick:()=>signout()},' Logout ');
 }
 
 export {
