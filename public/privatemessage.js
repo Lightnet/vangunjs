@@ -4,6 +4,7 @@ import { routeTo } from '/vanjs-router.js';
 import { 
   isLogin,
   gunState,
+  aliasState,
 } from '/context.js';
 import { Modal, MessageBoard } from "vanjs-ui";
 import {van} from '/dps.js';
@@ -23,6 +24,7 @@ const {
 
 const ElPrivateMessage = ()=>{
 
+  const userName = van.derive(() => aliasState.val);
   //check user is login if not return to home url
   van.derive(()=>{
     //console.log(isLogin.val);
@@ -50,6 +52,8 @@ const ElPrivateMessage = ()=>{
       button({onclick:()=>view.val='message'},' Message '),
       button({onclick:()=>view.val='compose'},' Compose '),
       button({onclick:()=>view.val='options'},' Options '),
+      label("Alias:"),
+      label(userName),
     ),
     viewRender
   );
@@ -166,12 +170,9 @@ const ElPriaveMessageBox = ()=>{
           if(cert){
             //console.log(cert);
             let timeexp = parseInt(cert.split(",")[1].split(":")[1]);
-            //console.log(gunUnixToDate(timeexp));
-            //console.log(JSON.parse(cert));
-            //certdata = gunUnixToDate(timeexp);
             certdata = timeexp;
           }
-          //publicKeys.val = new Map(publicKeys.val.set(data.pub, data));
+          //make sure there no same id key
           publicKeys.val = new Map(publicKeys.val.set(id, {
             alias:userNode.alias,
             pub:id,
@@ -186,7 +187,7 @@ const ElPriaveMessageBox = ()=>{
 
   async function viewMessages(){
     const gun = gunState.val;
-    const to = gun.user(publicKey.val);
+    const to = gun.user(publicKey.val);// current user and from 
     let userNode = await to.then();
     //console.log(userNode);
     if(userNode?.alias){
@@ -194,16 +195,34 @@ const ElPriaveMessageBox = ()=>{
       console.log("FOUND ALIAS FOR MESSAGE QUERY...");
       const pair = user._.sea;
       let dec = await Gun.SEA.secret(userNode.epub, pair);
-      user.get('privatemessage').get(publicKey.val).map().once(async (data,key)=>{
+      let node = await user.then();
+      let currentAlias = node.alias;
+      let toAlias = userNode.alias;
+      if(!toAlias){
+        toAlias="unknown";
+      }
+
+      user.get('privatemessage').get(publicKey.val).map().once(async (data,key)=>{ //current user, from select pub
         console.log("data: ",data);
         console.log("key: ",key);
 
         let content = await Gun.SEA.decrypt(data.content, dec);
         console.log(content);
         if(content){//make sure it not null or empty
-          messages.val = new Map(messages.val.set(key,{date:key,content:content }))
+          messages.val = new Map(messages.val.set(key,{alias:toAlias,pub:publicKey.val,date:key,content:content }))
         }
-      })
+      });
+
+      to.get('privatemessage').get(pair.pub).map().once(async (data,key)=>{// from select, current user
+        console.log("data: ",data);
+        console.log("key: ",key);
+
+        let content = await Gun.SEA.decrypt(data.content, dec);
+        console.log(content);
+        if(content){//make sure it not null or empty
+          messages.val = new Map(messages.val.set(key,{alias:currentAlias,pub:pair.pub,date:key,content:content }))
+        }
+      });
     }
   }
 
@@ -261,7 +280,7 @@ const ElPriaveMessageBox = ()=>{
     const element = document.getElementById(id);
     //console.log(element);
     if(element){
-      console.log("move?")
+      //console.log("move?")
       element.scrollTop = element.scrollHeight;
     }
   }
@@ -276,6 +295,19 @@ const ElPriaveMessageBox = ()=>{
       messageScrollBar();
     },100);
   });
+
+  const displayAlias = async ({id})=>{
+    const gun = gunState.val;
+    if(gun){
+      let gunUser = gun.user(id);
+      let who = await gunUser.then();
+      console.log(who);
+      if(who.alias){
+        label(who.alias);
+      }
+    }
+    return label("DNONE");
+  }
 
   return div(
     div(
@@ -298,11 +330,14 @@ const ElPriaveMessageBox = ()=>{
       const messageNodes = messages.val;
       //console.log( messageNodes);
       let messageList = [];
+      //https://www.geeksforgeeks.org/how-to-convert-map-keys-to-an-array-in-javascript/
       messageNodes.forEach((data, key) => {
         messageList.push(
         div({id:key},
         label(unixToDate(parseInt(data.date))),
         label(" : "),
+        label(data.alias),
+        label(" :> "),
         label(data.content),
         ));
       });
@@ -334,8 +369,9 @@ const ElPriaveMessageCompose = ()=>{
   const message = van.state('');
   const publicKeyStatus = label('None');
   const certStatus = label('None');
-
   const sentStatus = label('None');
+  //const isAccess = label(true);
+
   // test VKWYPbLiFjKKqqqoUBIkjWmxUKVFK2qELxbzMxehhRA.CSs3ZpdSZfKzogwYq2SjFwbHQ2MSCnu7jnE7iiPABws
   // aaaa 
   async function btnSend(){
@@ -479,18 +515,12 @@ const ElPriaveMessageCompose = ()=>{
             textarea({style:"width:256px;height:80px", value:message,oninput:e=>message.val=e.target.value})
           )
         ),
-        van.derive(()=>{
-          if (isAccess.val){
-          return tr(
-            td({colspan:2},
-              button({onclick:()=>btnSend()},'Send'),
-              button({onclick:()=>btnDraft()},'Draft')
-            )
-          );
-          }else{
-            return ' ';
-          }
-        }),
+        tr(
+          td({colspan:2},
+            button({onclick:()=>btnSend()},'Send'),
+            button({onclick:()=>btnDraft()},'Draft')
+          )
+        ), 
         tr(
           td(
             label('Send Status:')
