@@ -1,7 +1,7 @@
 // for public and private group message
 
 import {van} from '/dps.js';
-import '/van-ui.nomodule.min.js'; //modal
+import { Modal } from 'vanjs-ui'; //modal
 const {
   button,
   div, 
@@ -34,23 +34,24 @@ const ElGroupMessage = ()=>{
 }
 
 const ELGroupMessageMenu =()=>{
-  const closed = van.state(false);
+  const closed = van.state(false);//create group
+  const closedOptions = van.state(false);//create group
+
   const groupName = van.state('');
   const groupInfo = van.state('None');
-  const GroupID = van.state('');
-  const GroupMessageSel = select({style:"width:256px;",onchange:onChangeGroupMessageSel});
+  const groupID = van.state('');
+  const GroupMessageSel = select({style:"width:256px;",onclick:onChangeGroupMessageSel,onchange:onChangeGroupMessageSel});
   const groupMessages = van.state(new Map());
-
   const isModalCreate = van.state(true);
-
   const ElRoomInfo = div();
+
 
   function onChangeGroupMessageSel(e){
     //console.log(e.target.value)
-    //GroupID.val = e.target.value;
+    //groupID.val = e.target.value;
     let groupData = groupMessages.val.get(e.target.value);
     if(groupData){
-      GroupID.val = groupData.pub;
+      groupID.val = groupData.pub;
     }
   }
 
@@ -70,15 +71,17 @@ const ELGroupMessageMenu =()=>{
   })
 
   function btnJoin(){
-    //api({action:"join", groupID:GroupID.val})
-    if(typeof GroupID.val === 'string' && GroupID.val.length != 0 ){
-      routeTo('groupmessageroom', [GroupID.val]);
+    //api({action:"join", groupID:groupID.val})
+    if(typeof groupID.val === 'string' && groupID.val.length != 0 ){
+      routeTo('groupmessageroom', [groupID.val]);
       closed.val = true;
     }
   }
 
   function btnShowOptions(){
-
+    van.add(document.body, Modal({closed},
+      ElGroupMessageOptions({closed}),
+    ))
   }
 
   function btnCreate(){
@@ -148,15 +151,6 @@ const ELGroupMessageMenu =()=>{
     const gunInstance = Gun(location.origin+"/gun");
     // https://gun.eco/docs/SEA.certify
 
-    /*
-    gunInstance.user().create(roomPair, () => {
-      gunInstance.user()
-        .get('certs')
-        .get('message')
-        .put(cert);
-    });
-    */
-
     // https://gun.eco/docs/SEA.certify
     // Authenticate with the room pair
     gunInstance.user().auth(roomPair, async () => { 
@@ -216,24 +210,24 @@ const ELGroupMessageMenu =()=>{
 
   }
 
-  function btnAddGroupId(){
+  function btnAddgroupID(){
     const gun = gunState.val;
   }
 
-  function btnDeleteGroupId(){
-    console.log(GroupID.val);
+  function btnDeletegroupID(){
+    console.log(groupID.val);
     const nodes = groupMessages.val;
     for(const [key, groupData] of nodes){
       console.log(groupData);
       if(groupData != "null"){
-        if(groupData.pub == GroupID.val){
+        if(groupData.pub == groupID.val){
           console.log("FOUND!", groupData);
           console.log("key", key);
           const gun = gunState.val;
           const user = gun.user();
 
           user.get("groupmessage").get(key).put("null");
-          GroupID.val = "";
+          groupID.val = "";
           let messageids = nodes.delete(key);
           console.log(nodes);
           //if(messageids){//bool
@@ -247,13 +241,13 @@ const ELGroupMessageMenu =()=>{
   }
 
   van.derive(async ()=>{
-    console.log(GroupID.val);
+    //console.log(groupID.val);
     const gun = gunState.val;
-    if(typeof GroupID.val === 'string' && GroupID.val.length ===0){
+    if(typeof groupID.val === 'string' && groupID.val.length ===0){
       return;
     }
     ElRoomInfo.innerText = "";
-    let user = gun.user(GroupID.val);
+    let user = gun.user(groupID.val);
     let room = await user.then();
     console.log(room);
     let alias_pub = await user.get('host').then();
@@ -271,10 +265,10 @@ const ELGroupMessageMenu =()=>{
       button({onclick:()=>refreshGroupMessages()},'Refresh'),
       label("Group Message Pub:"),
       GroupMessageSel,
-      input({value:GroupID,oninput:e=>GroupID.val=e.target.value,placeholder:"Room ID Key"}),
+      input({value:groupID,oninput:e=>groupID.val=e.target.value,placeholder:"Room ID Key"}),
       button({onclick:()=>btnJoin()},'Join'),
-      button({onclick:()=>btnAddGroupId()},'Add'),
-      button({onclick:()=>btnDeleteGroupId()},'Delete'),
+      button({onclick:()=>btnAddgroupID()},'Add'),
+      button({onclick:()=>btnDeletegroupID()},'Delete'),
       button({onclick:()=>btnShowCreate()},'Create'),
       button({onclick:()=>btnShowOptions()},'Options'),
     ),
@@ -304,6 +298,24 @@ const ElGroupInfo = ({
     )
   )
 };
+
+//check for current group access and information.
+const ElGroupMessageOptions = ({closed})=>{
+
+  const view = van.state();
+
+  return div({style:"width:800px;height:400px;"},
+    div(
+      button({onclick:()=>closed.val=true},'X')
+    ),
+    div(
+      button('Information'),
+      button('Members'),
+      button('Blacklist'),
+      button('Keys'),
+    )
+  )
+}
 
 
 const ELGroupMessageRoom =({api,groupID})=>{
@@ -415,9 +427,9 @@ const ELGroupMessageRoom =({api,groupID})=>{
 
   return closed.val ? null : div(
     div(
-      label("Room Id:"),
-      label(_groupID.val),
       button({onclick:()=>callLeave()},'Leave'),
+      label("Room ID:"),
+      label(_groupID.val),
     ),
     ElMessages,
     div(

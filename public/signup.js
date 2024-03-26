@@ -121,7 +121,7 @@ function save(filename, data) {
 }
 
 const ElPairSignUp= ()=>{
-  const board = new MessageBoard({top: "20px"});
+  
   const pairKey = van.state('{}'); //string
   const isWorker = van.state(false);
   const isBase64 = van.state(true);

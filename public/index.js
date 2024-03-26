@@ -3,7 +3,7 @@
 //import van from "https://cdn.jsdelivr.net/gh/vanjs-org/van/public/van-1.5.0.min.js"
 //import { Route, routeTo } from '/vanjs-router.js';
 import {van, Route, routeTo} from '/dps.js';
-import '/van-x.nomodule.min.js';
+import * as vanX from 'vanjs-ext';
 import 'https://cdn.jsdelivr.net/npm/gun/gun.js';
 import 'https://cdn.jsdelivr.net/npm/gun/sea.js';
 //console.log(Gun.SEA);
@@ -16,18 +16,13 @@ import { ELGroupMessageRoom, ElGroupMessage } from './groupmessage.js';
 import { ElAccount } from './account.js';
 import { btnSignOut } from './signout.js';
 import { ElPrivateMessage } from './privatemessage.js';
-import { gunUnixTime, gunUnixToDate, unixTime } from './helper.js';
 
 const {button, div, label} = van.tags;
 
-//console.log(vanX);
+console.log(vanX);
 //const obj = vanX.reactive({a: 1, b: 2})
 //console.log(obj);
 //console.log(Gun.state())
-//console.log(gunUnixTime())
-//console.log(unixTime())
-//console.log(gunUnixToDate(Gun.state()))
-
 //console.log(String.random(16));
 
 //AppContext._version.val = "test";
@@ -48,26 +43,9 @@ gunState.val = gun;
 //   console.log("realtime updates:", data);
 // });
 //setInterval(() => { gun.get('mark').get('live').put(Math.random()) }, 90);
-//const gunState = AppContext._gun;
 
-//const userName = van.derive(() => AppContext.alias.val);
 // https://github.com/iuroc/vanjs-router
 const App=()=>{
-
-  //const _isLogin = van.derive(() => {
-    //console.log(isLogin.val);
-  //})
-
-  const roomID = van.state('');
-  const viewRender = van.derive(()=>{
-    //console.log("roomID.val: ", roomID.val);
-    let roomId = roomID.val;
-    if(typeof roomId === 'string' && roomId.length > 0){
-      return  ELGroupMessageRoom({groupID:roomID.val});
-    }else{
-      return div('None!');
-    }
-  });
 
   return div(
     Route({ name: 'home' },
@@ -112,7 +90,7 @@ const App=()=>{
       ElGroupMessage()
     ),
     ()=>{
-      
+      const roomID = van.state('');
       return Route({
         name: 'groupmessageroom', 
         onLoad(route){
@@ -122,15 +100,21 @@ const App=()=>{
           //console.log("room id: ",id);
           if(typeof id === 'string' && id.length === 0){
           }else{
-            //console.log("SET ROOM ID", id);
+            console.log("SET ROOM ID", id);
             roomID.val = id;
           }
         }
       },
-      viewRender
+      van.derive(()=>{
+        console.log("roomID.val: ", roomID.val);
+        let roomId = roomID.val;
+        if(typeof roomId === 'string' && roomId.length > 0){
+          return ELGroupMessageRoom({groupID:roomID.val});
+        }else{
+          return div('None!');
+        }
+      })
       //div('group Id: ', roomID),
-      
-      
       //testKey({id:roomID})
       )
     }
@@ -139,13 +123,10 @@ const App=()=>{
 
 const testKey = ({id})=>{
   //console.log("KEY", id);
-
   const msg = van.derive(()=>{
     console.log("derive id: ",id.val);
     //console.log(id);
   });
-
-
   return label('TESTS '+ id);
 }
 
