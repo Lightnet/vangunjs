@@ -8,7 +8,7 @@ import 'https://cdn.jsdelivr.net/npm/gun/gun.js';
 import 'https://cdn.jsdelivr.net/npm/gun/sea.js';
 //console.log(Gun.SEA);
 
-import { gunState } from '/context.js';
+import { gunState, isLogin } from '/context.js';
 import { ELSignin } from './signin.js';
 import { ELSignup } from './signup.js';
 import { ElHome } from './home.js';
@@ -18,8 +18,7 @@ import { btnSignOut } from './signout.js';
 import { ElPrivateMessage } from './privatemessage.js';
 
 const {button, div, label} = van.tags;
-
-console.log(vanX);
+//console.log(vanX);
 //const obj = vanX.reactive({a: 1, b: 2})
 //console.log(obj);
 //console.log(Gun.state())
@@ -46,6 +45,8 @@ gunState.val = gun;
 
 // https://github.com/iuroc/vanjs-router
 const App=()=>{
+
+  const isUserLogin = van.derive(()=>isLogin.val);
 
   return div(
     Route({ name: 'home' },
@@ -98,21 +99,23 @@ const App=()=>{
           let [id] = route.args;
           //console.log(typeof id);
           //console.log("room id: ",id);
-          if(typeof id === 'string' && id.length === 0){
+          if(typeof id === 'string' && id.length === 0 && isUserLogin == true){
           }else{
             console.log("SET ROOM ID", id);
             roomID.val = id;
+            van.add(document.body, ELGroupMessageRoom({groupID:id}));
           }
         }
       },
       van.derive(()=>{
-        console.log("roomID.val: ", roomID.val);
-        let roomId = roomID.val;
-        if(typeof roomId === 'string' && roomId.length > 0){
-          return ELGroupMessageRoom({groupID:roomID.val});
-        }else{
-          return div('None!');
-        }
+        // let roomId = roomID.val;
+        // console.log("roomId: ",roomId);
+        // if(typeof roomId === 'string' && roomId.length > 0){
+        //   return ELGroupMessageRoom({groupID:roomId});
+        // }else{
+        //   console.log("roomId: ",roomId);
+        //   return div('Error || None Room ID!');
+        // }
       })
       //div('group Id: ', roomID),
       //testKey({id:roomID})

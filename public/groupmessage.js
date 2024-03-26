@@ -13,7 +13,9 @@ const {
 } = van.tags;
 
 import { 
-  gunState
+  gunState,
+  isLogin,
+  board
 } from '/context.js';
 import { routeTo } from '/vanjs-router.js';
 //console.log(Modal);
@@ -134,7 +136,7 @@ const ELGroupMessageMenu =()=>{
     // Issue the wildcard certificate for all to write personal items to the 'profile'
     const cert_message = await Gun.SEA.certify( 
       '*',  // everybody is allowed to write
-      { '*':'message', '+': '*' }, // to the path that starts with 'message' and along with the key has the user's pub in it
+      { '*':'messages', '+': '*' }, // to the path that starts with 'message' and along with the key has the user's pub in it
       roomPair, //authority
       null, //no need for callback here
       { expiry: Gun.state() + (60*60*24*1000) } // Let's set a one day expiration period
@@ -153,35 +155,51 @@ const ELGroupMessageMenu =()=>{
 
     // https://gun.eco/docs/SEA.certify
     // Authenticate with the room pair
-    gunInstance.user().auth(roomPair, async () => { 
-       // Put the certificate into the room graph for ease of later use
+    gunInstance.user().auth(roomPair, async () => {
+
+      // gunInstance.user()//for user register access
+      //   .get('pending')
+      //   .get(userPair.pub)
+      //   .put("true");
+
+      // Put the certificate into the room graph for ease of later use
       gunInstance.user()
-          .get('certs')
-          .get('message')
-          .put(cert_message);
+        .get('certs')
+        .get('messages')
+        .put(cert_message); //public ? testing...
+
       gunInstance.user()
-          .get('certs')
-          .get('pending')
-          .put(cert_pending);
+        .get('certs')
+        .get('pending')
+        .put(cert_pending);
+
+      let passphrase = await SEA.secret(userPair.epub,roomPair);
+      gunInstance.user()
+        .get('keys')
+        .get('messages')
+        .get(userPair.pub)
+        .put(passphrase); // ?
+
       let enc = await SEA.encrypt(roomPair, userPair)
       gunInstance.user()
         .get('host')
         .get(userPair.pub)
         .put(enc);//store room host pub sea pair.
-      gunInstance.user()//for user register access
-        .get('pending')
-        .get(userPair.pub)
-        .put("true");
-
+        
       gunInstance.user()
         .get('members')
         .get(userPair.pub)
-        .put({role:"admin"});
+        .put({
+          role:"admin",
+          //cert:"",
+          key:"",
+          ban:0
+        });
 
-      //not safe
-      gunInstance.user().get('alias').put(groupName.val);
       
+      gunInstance.user().get('alias').put(groupName.val);
       gunInstance.user().get('information').put(groupInfo.val);
+      //not safe
       //gunInstance.user().get('pub').put(roomPair.pub)
       //gunInstance.user().get('epub').put(roomPair.epub)
     });
@@ -317,25 +335,33 @@ const ElGroupMessageOptions = ({closed})=>{
   )
 }
 
-
 const ELGroupMessageRoom =({api,groupID})=>{
-  const closed = van.state(false);//this will clean up I think.
+
+  const closed = van.state(false); //this will clean up I think.
+  const roomName = van.state('None');
   const messages = van.state(new Map());
-  const ElMessages = div({style:"backgroud-color:gray; with:600px;height:400px;"});
+  const ElMessages = div({style:"background-color:lightgray;width:600px;height:400px;overflow-y: scroll;"});
   const _groupID = van.state('');
   const message = van.state('');
+  const isInit = van.state(false);
+  //const gunNodeMessage = van.state(null);
+  van.derive(()=>{
+    //clean up if refresh that still hold render
+    //check if user is login and if not login it will close to clean up leaking...
+    if(isLogin.val == false){
+      closed.val = true;
+    }
+  });
 
-  //console.log("groupID:", groupID)
   //console.log("groupID:", groupID)
   van.derive(()=>{
     //console.log("groupID:", groupID);
     _groupID.val = groupID;
-  });
-
-  van.derive(()=>{
     let id = _groupID.val;
-    if(typeof id === 'string' && id.length > 0){
+    //looping call?
+    if(typeof id === 'string' && id.length > 0 && isInit.val == false){
       console.log("id: ",id);
+      isInit.val = true;
       initGroupMessage();
     }
   });
@@ -363,60 +389,79 @@ const ELGroupMessageRoom =({api,groupID})=>{
 
   async function initGroupMessage(){
     //console.log("init :", _groupID.val);
+    //NEED gun instance for leaks and cleanup.
+    //if(gunNodeMessage.val){
+      //gunNodeMessage.val.off();//turn off listen
+    //}
+
+    const gunInstance = Gun(location.origin+"/gun");
 
     const gun = gunState.val;
     const user = gun.user();
-    console.log(user);
-    if(!user.is){
-      console.log("user.is", user.is);
-      return;
-    }
-    let userPair = user._.sea;
-    if(!userPair){
-      console.log("userPair", userPair);
-      return;
-    }
+    const userPair = user._.sea;
+    gunInstance.user().auth(userPair, async () => {
 
-    const room = gun.user(_groupID.val);
-    let who = await room.then() || {};//get alias data
-    //console.log("room Data: ",who);
-    if(!who.certs){console.log("No certs!");return;}
-    let dec = await Gun.SEA.secret(who.epub, userPair);
-    //const cert = await room.get('certs').get('message').then();
-
-    room.get('message').get(userPair.pub).map().once(async (data,key)=>{
-      //console.log("data: ", data);
-      //console.log("key: ", key);
-      let content = await Gun.SEA.decrypt(data.content, dec);
-      console.log("content: ",content);
-      if(content){//check if exist
-        messages.val = new Map(messages.val.set(key, {content:content}))
+      console.log(user);
+      if(!user.is){
+        console.log("user.is", user.is);
+        return;
       }
-      
+      if(!userPair){
+        console.log("userPair", userPair);
+        return;
+      }
+
+      const room = gunInstance.user(_groupID.val);
+      let who = await room.then() || {};//get alias data
+      //console.log("room Data: ",who);
+      //TODO ENCODE
+      if(!who.certs){console.log("No certs!");return;}
+      //let dec = await Gun.SEA.secret(who.epub, userPair);
+      //const cert = await room.get('certs').get('message').then();
+
+      room.get('messages').get(userPair.pub).map().once(async (data,key)=>{
+        //console.log("data: ", data);
+        //console.log("key: ", key);
+        //let content = await Gun.SEA.decrypt(data.content, dec);
+        let content = data.content;
+        console.log("content: ",content);
+        if(content){//check if exist
+          messages.val = new Map(messages.val.set(key, {content:content}))
+        }
+      });
     });
+
+    //gunNodeMessage.val = room;
   }
 
   async function sentMessage(){
+    //console.log("_groupID.val: ", _groupID.val);
+
     const gun = gunState.val;
     const user = gun.user();
-    let userPair = user._.sea;
-    //console.log("_groupID.val: ", _groupID.val);
-    const room = gun.user(_groupID.val);
+    const userPair = user._.sea;
+    const gunInstance = Gun(location.origin+"/gun");
+    //gun instance
+    gunInstance.user().auth(userPair, async () => {
+      const room = gunInstance.user(_groupID.val);
+      let who = await room.then() || {};//get alias data
+      //console.log("room Data: ",who);
+      if(!who.certs){console.log("No certs!");return;}
+      const cert = await room.get('certs').get('messages').then();
 
-    let who = await room.then() || {};//get alias data
-    //console.log("room Data: ",who);
-    if(!who.certs){console.log("No certs!");return;}
-    const cert = await room.get('certs').get('message').then();
+      //need to rework the build later...
+      //let sec = await Gun.SEA.secret(who.epub, userPair); // Diffie-Hellman
+      //let enc_content = await Gun.SEA.encrypt(message.val, sec); //encrypt message
 
-    //need to rework the build later...
-    let sec = await Gun.SEA.secret(who.epub, userPair); // Diffie-Hellman
-    let enc_content = await Gun.SEA.encrypt(message.val, sec); //encrypt message
+      let enc_content = message.val;
 
-    room.get('message').get(userPair.pub).get(Gun.state()).put({
-      content:enc_content
-    },(ack)=>{
-      console.log(ack);
-    },{opt:{cert:cert}})
+      room.get('messages').get(userPair.pub).get(Gun.state()).put({
+        content:enc_content
+      },(ack)=>{
+        console.log(ack);
+      },{opt:{cert:cert}})
+    });
+
   }
 
   //initGroupMessage();
@@ -425,11 +470,45 @@ const ELGroupMessageRoom =({api,groupID})=>{
     console.log(groupID)
   }
 
-  return closed.val ? null : div(
+  async function copyRoomId(){
+    try {
+      await navigator.clipboard.writeText(_groupID.val);
+      board.show({message: "Copy Room ID!", durationSec: 1});
+      //console.log('Content copied to clipboard');
+    } catch (err) {
+      //console.error('Failed to copy: ', err);
+      board.show({message: "Fail Copy Room ID!", durationSec: 1});
+    }
+  }
+
+  async function showOptions(){
+
+  }
+
+  async function checkGroupMessageInfo(){
+    const groupId = _groupID.val;
+    const gun = gunState.val;
+    const room = await gun.user(groupId).then();
+    console.log(room);
+    roomName.val = room.alias;
+  }
+
+  const currentRoomName = van.derive(()=>roomName.val);
+
+  checkGroupMessageInfo();
+
+  return closed.val ? null : div({id:_groupID.val},
     div(
       button({onclick:()=>callLeave()},'Leave'),
-      label("Room ID:"),
-      label(_groupID.val),
+      button({onclick:()=>showOptions()},'Options'),
+    ),
+    div(
+      label({onclick:()=>copyRoomId()},"Room Name:"),
+      label(currentRoomName),
+    ),
+    div(
+      label({onclick:()=>copyRoomId()},"Room ID:"),
+      input({readonly:true,value:_groupID}),
     ),
     ElMessages,
     div(
@@ -439,7 +518,6 @@ const ELGroupMessageRoom =({api,groupID})=>{
     )
   )
 }
-
 
 export {
   ElGroupMessage,

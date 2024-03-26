@@ -53,7 +53,7 @@ const EldefaultLogin= ()=>{
       //console.log(ack);
       if(ack.err){
         board.show({message: "Failed Login!", durationSec: 1})
-        console.log("BAD LOGIN");
+        //console.log("BAD LOGIN");
         return;
       }
       board.show({message: "Passed Login!", durationSec: 1});
