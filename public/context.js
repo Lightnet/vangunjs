@@ -1,18 +1,14 @@
+
+
 import {van} from '/dps.js';
+import { MessageBoard } from "vanjs-ui";
 
 const versionState = van.state('0.0.1');
-
-// class AppContext {
-//   static gun = van.state(null);
-//   static version = van.state('0.0.1');
-//   static alias = van.state('Guest');
-//   static isLogin = van.state(false);
-// }
-
 const isLogin = van.state(false);
 const gunState = van.state(null);
 const aliasState = van.state('Guest');
 const publicKeyState = van.state('');
+const board = new MessageBoard({top: "20px"})
 
 export {
   //AppContext,
@@ -20,5 +16,6 @@ export {
   gunState,
   aliasState,
   publicKeyState,
-  versionState
+  versionState,
+  board
 }

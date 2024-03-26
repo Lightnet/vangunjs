@@ -5,10 +5,10 @@ import {
   isLogin, 
   gunState, 
   aliasState,
-  publicKeyState
+  publicKeyState,
+  board
 } from '/context.js';
 import { routeTo } from '/vanjs-router.js';
-import { Modal, MessageBoard } from "vanjs-ui";
 
 const {
   div, 
@@ -45,7 +45,6 @@ const EldefaultLogin= ()=>{
   const alias = van.state("test");
   const passphrase = van.state("012345678");
   const gun = gunState.val;
-  const board = new MessageBoard({top: "20px"})
 
   function login(){
     //console.log(versionState.val)
@@ -182,13 +181,13 @@ const ElPairLogin= ()=>{
         ),
         //WORK CHECK
         tr(
-          label('Worker:'),
+          label('Work Passphrase:'),
           input({type:'checkbox',checked:isWorker,oninput:e=>isWorker.val=e.target.checked}),
         ),
         van.derive(()=>{
           if(isWorker.val){
             return tr(
-              td(input({value:worker1,oninput:e=>worker1.val=e.target.value,placeholder:"Worker 1"}))
+              td(input({value:worker1,oninput:e=>worker1.val=e.target.value,placeholder:"Work Passphrase | key 1"}))
             );
           }else{
             return ' ';
@@ -197,7 +196,7 @@ const ElPairLogin= ()=>{
         van.derive(()=>{
           if(isWorker.val){
             return tr(
-              td(input({value:worker2,oninput:e=>worker2.val=e.target.value,placeholder:"Worker 2"}))
+              td(input({value:worker2,oninput:e=>worker2.val=e.target.value,placeholder:"Work Passphrase | key 2"}))
             );
           }else{
             return ' ';

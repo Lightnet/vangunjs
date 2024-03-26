@@ -74,7 +74,12 @@ const ElPriaveMessageBox = ()=>{
   const aliasNode = label('None');
   const expireNode = label('None');
 
-  const ElPublicKeys = select({style:"width:200px;",onchange:(e)=>onChangePublicKeys(e)})
+  const ElPublicKeys = select({style:"width:200px;",onclick:(e)=>onChangePublicKeys(e),onchange:(e)=>onChangePublicKeys(e)})
+
+  function clickSelect(e){
+    console.log("clickSelect: ",e.target.value);
+
+  }
 
   van.derive(()=>{
     const userNodes = publicKeys.val;
@@ -85,7 +90,7 @@ const ElPriaveMessageBox = ()=>{
       for (const [key, userData] of userNodes) {
         //console.log(`${key} = ${userData}`);
         //console.log(userData);
-        van.add(ElPublicKeys, option({value:key},userData.alias));
+        van.add(ElPublicKeys, option({value:key,onclick:()=>clickSelect(key)},userData.alias));
       }
     }
   });
@@ -127,14 +132,14 @@ const ElPriaveMessageBox = ()=>{
     // MAP
     let userData = userNodes.get(e.target.value);//public key
     if(userData){//user {alias:userNode.alias,pub:id,cert:certdata};
-      console.log("on Change userData: ",userData);
+      //console.log("on Change userData: ",userData);
       aliasNode.innerText = userData.alias;
       expireNode.innerText = gunUnixToDate(parseInt(userData.cert)) + " > " + gunUnixToDate(Gun.state());
-      console.log(typeof expireNode.innerText);
-      console.log(expireNode.innerText);
+      //console.log(typeof expireNode.innerText);
+      //console.log(expireNode.innerText);
       if(userData.cert != "None"){
-        console.log(userData.cert);
-        if(parseInt(userData.cert) > Gun.state()){
+        //console.log(userData.cert);
+        if(parseInt(userData.cert) > Gun.state()){//if expire disable UI
           isAccess.val = true;
         }else{
           isAccess.val = false;
@@ -295,7 +300,7 @@ const ElPriaveMessageBox = ()=>{
       messageScrollBar();
     },100);
   });
-
+  //nope await display promise
   const displayAlias = async ({id})=>{
     const gun = gunState.val;
     if(gun){

@@ -1,6 +1,6 @@
 import {van} from '/dps.js';
 
-import { gunState } from '/context.js';
+import { gunState, board } from '/context.js';
 import { QRCode } from '/qrcode.min.js';
 
 const {
@@ -15,7 +15,6 @@ const {
   textarea
 } = van.tags;
 import { routeTo } from '/vanjs-router.js';
-import { Modal, MessageBoard } from "vanjs-ui";
 
 const ELSignup = ()=>{
 
@@ -38,7 +37,6 @@ const ELSignup = ()=>{
 }
 
 const ElDefaultSignUp =()=>{
-  const board = new MessageBoard({top: "20px"});
   const alias = van.state("");
   const passphrase = van.state("012345678");
 
@@ -264,14 +262,14 @@ const ElPairSignUp= ()=>{
         ),
         tr(
           td({colspan:2},
-            label('Worker'),
+            label('Work Passphrases'),
             input({type:'checkbox',checked:isWorker,oninput:e=>isWorker.val=e.target.checked})
           )
         ),
         van.derive(()=>{
           if(isWorker.val){
             return tr(
-              td(input({value:worker1,oninput:e=>worker1.val=e.target.value,placeholder:"Worker 1"}))
+              td(input({value:worker1,oninput:e=>worker1.val=e.target.value,placeholder:"Work Passphrase | Key 1"}))
             );
           }else{
             return ' ';
@@ -281,7 +279,7 @@ const ElPairSignUp= ()=>{
         van.derive(()=>{
           if(isWorker.val){
             return tr(
-              td(input({value:worker2,oninput:e=>worker2.val=e.target.value,placeholder:"Worker 2"}))
+              td(input({value:worker2,oninput:e=>worker2.val=e.target.value,placeholder:"Work Passphrase | Key 2"}))
             );
           }else{
             return ' ';
