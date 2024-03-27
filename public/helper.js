@@ -19,6 +19,10 @@ function unixToDate(_num){
 function gunUnixToDate(_num){
   //return new Date(_num * 1000).toLocaleString();
   return new Date(_num).toLocaleString();
+  //let dateTime = new Date(_num);
+  //let hours = dateTime.getHours() % 12 || 12;
+  //let newTime  =  dateTime.getFullYear()+ "/" + dateTime.getMonth() + "/" + dateTime.getDate() + " " +  hours + ":" + dateTime.getMinutes()+ ":" + dateTime.getSeconds();
+  //return newTime;
 }
 
 export {

@@ -68,7 +68,7 @@ const ElPriaveMessageBox = ()=>{
   const message = van.state('');
   const isAccess = van.state(true);
 
-  const messageList = div({style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"});
+  //const messageList = div({style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"});
   const publicKeys = van.state(new Map());
 
   const aliasNode = label('None');

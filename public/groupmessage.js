@@ -1,4 +1,5 @@
 // for public and private group message
+// https://github.com/Lightnet/jsvuegunui/blob/main/src/components/groupmessage/GroupMessage.vue
 
 import {van} from '/dps.js';
 import { Modal } from 'vanjs-ui'; //modal
@@ -18,6 +19,7 @@ import {
   board
 } from '/context.js';
 import { routeTo } from '/vanjs-router.js';
+import { gunUnixToDate } from './helper.js';
 //console.log(Modal);
 
 const ElGroupMessage = ()=>{
@@ -82,7 +84,7 @@ const ELGroupMessageMenu =()=>{
 
   function btnShowOptions(){
     van.add(document.body, Modal({closed},
-      ElGroupMessageOptions({closed}),
+      ElGroupMessageOptions({closed,roomID:groupID.val}),
     ))
   }
 
@@ -132,7 +134,6 @@ const ELGroupMessageMenu =()=>{
     //console.log(encode);
     const random_id = String.random(16);
     
-
     user.get("groupmessage").get(random_id).put(encode);
 
     // Issue the wildcard certificate for all to write personal items to the 'profile'
@@ -277,20 +278,58 @@ const ELGroupMessageMenu =()=>{
   van.derive(async ()=>{
     //console.log(groupID.val);
     const gun = gunState.val;
+    const user = gun.user();
+    
     if(typeof groupID.val === 'string' && groupID.val.length ===0){
       return;
     }
     ElRoomInfo.innerText = "";
-    let user = gun.user(groupID.val);
-    let room = await user.then();
-    console.log(room);
-    let alias_pub = await user.get('host').then();
-    console.log(alias_pub);
+    console.log("ROOM ID:: ",groupID.val)
+    const room = gun.user(groupID.val);
+    const roomData = await room.then();
+    if(!roomData.host){
+      console.log("NO HOST!")
+      return;
+    }
+    let cert_pending = await room.get('certs').get('pending').then();
+    console.log("cert_pending: ",cert_pending);
+    let expireDate = "Not Set!";
+    if(cert_pending){
+      let timeexp = parseInt(cert_pending.split(",")[1].split(":")[1]);
+      console.log("TIME: ", timeexp);
+      console.log("TIME: ", gunUnixToDate(timeexp));
+      expireDate = gunUnixToDate(timeexp);
+    }
+
+    let alias_obj = await room.get('host').then();
+    let alias_keys = Object.keys(alias_obj);
+    let pub = "";
+    for(let i = 0;i < alias_keys.length;++i){
+      if(Gun.SEA.opt.pub("~"+alias_keys[i])){
+        pub = alias_keys[i];
+        break;
+      }
+    }
+    let owner = await gun.user(pub).then();
+    console.log(owner);
+    if(!owner.alias){
+      console.log("Can't find Alias Name!")
+      return;
+    }
+    let pending = "";
+    if(pub == user._.sea.pub){
+      pending = "Admin";
+    }else{
+      pending = await room.get("pending").get(user._.sea.pub);
+    }
+    console.log(pending);
+
     van.add(ElRoomInfo, ElGroupInfo({
-      alias:room.alias,
-      pub: room.pub,
-      host: alias_pub,
-      pending:"None",
+      alias:roomData.alias,
+      pub: groupID.val,
+      host: owner.alias,
+      pending:pending,
+      expire:expireDate
     }))
   });
 
@@ -315,7 +354,25 @@ const ElGroupInfo = ({
   host,
   pending,
   pub,
+  expire,
 })=>{
+
+  async function btnApply(){
+    const gun = gunState.val;
+    const user = gun.user();
+    const room = gun.user(pub);
+    const roomData = await room.then();
+    console.log("roomData: ", roomData);
+    const cert = await room.get("certs").get('pending').then();
+    console.log("cert: ", cert)
+    const _pending = await room.get("pending").get(user._.sea.pub).then();
+    console.log("_pending:", _pending);
+    room.get("pending").get(user._.sea.pub).put("apply",
+    (ack)=>{
+      console.log(ack);
+    },{opt:{cert:cert}} )
+
+  }
 
   return div(
     div(
@@ -328,28 +385,108 @@ const ElGroupInfo = ({
       label("Host:"+ host)
     ),
     div(
+      label("Expire Date:" + expire)
+    ),
+    div(
       label("Pending:" + pending)
+    ),
+    div(
+      label("Actions:"),
+      button({onclick:()=>btnApply()},"Apply")
     )
   )
 };
 
 //check for current group access and information.
-const ElGroupMessageOptions = ({closed})=>{
+const ElGroupMessageOptions = ({closed,roomID})=>{
 
-  const view = van.state();
+  const view = van.state("information");
+
+  const viewRender = van.derive(()=>{
+    return ElCerts({roomID:roomID})
+  })
 
   return div({style:"width:800px;height:400px;"},
     div(
       button({onclick:()=>closed.val=true},'X')
     ),
     div(
-      button('Information'),
-      button('Members'),
-      button('Blacklist'),
-      button('Keys'),
+      button({onclick:()=>view.val='information'},'Information'),
+      button({onclick:()=>view.val='members'},'Members'),
+      button({onclick:()=>view.val='pending'},'Pending'),
+      button({onclick:()=>view.val='blacklist'},'Blacklist'),
+      button({onclick:()=>view.val='certs'},'Certs'),
+    ),
+    viewRender
+  )
+}
+
+const ElCerts = ({roomID})=>{
+
+  function btnApplyMessage1Day(){
+
+  }
+
+  async function btnApplyPending1Day(){
+    console.log("roomID: ", roomID)
+    const gun = gunState.val;
+    const user = gun.user();
+    const room = gun.user(roomID);
+    const roomData = await room.then();
+    if(!roomData.host){
+      console.log("NO HOST");
+      return;
+    }
+    let roomPair = {};
+    const userPair = user._.sea;
+    console.log("userPair: ", userPair);
+    let encRoomPair = await room.get('host').get(userPair.pub).then()
+    //encRoomPair
+    roomPair = await SEA.decrypt(encRoomPair, userPair);
+    console.log("roomPair: ",roomPair);
+    if(!roomPair){
+      console.log("FAIL ROOM PAIR");
+      return;
+    }
+    let expireTime = Gun.state() + (60*60*25*1000);
+
+    console.log(expireTime);
+    console.log(
+      gunUnixToDate(expireTime)
+    )
+
+    const cert_pending = await Gun.SEA.certify( 
+      '*',  // everybody is allowed to write
+      { '*':'pending', '+': '*' }, // to the path that starts with 'message' and along with the key has the user's pub in it
+      roomPair, //authority
+      (ack)=>{
+        console.log(ack);
+      }, //no need for callback here
+      { expiry: expireTime } // Let's set a one day expiration period
+    );
+    console.log("cert_pending: ", cert_pending)
+
+    const gunInstance = Gun(location.origin+"/gun");
+    gunInstance.user().auth(roomPair, async () => {
+      gunInstance.user().get('certs')
+        .get('pending')
+        .put(cert_pending);
+    })
+  }
+
+  return div(
+    div(
+      label(' Message '),
+      button('1 Day ')
+    ),
+    div(
+      label(' Pending '),
+      button({onclick:()=>btnApplyPending1Day()},'1 Day ')
     )
   )
 }
+
+
 
 const ELGroupMessageRoom =({api,groupID})=>{
 
