@@ -78,7 +78,6 @@ const ElPriaveMessageBox = ()=>{
 
   function clickSelect(e){
     console.log("clickSelect: ",e.target.value);
-
   }
 
   van.derive(()=>{

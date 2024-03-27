@@ -37,10 +37,12 @@
     * [x] hint
     * [ ] profile
   * [ ] group message (wip)
-    * [ ] create group (wip)
-    * [ ] join ( wip )
+    * [x] create group (wip)
+    * [x] join ( wip )
     * [ ] add ( wip )
-    * [ ] delete ( wip )
+    * [x] delete ( wip )
+    * [x] public messages ( added)
+    * [ ] encode messages ( )
     * [ ] admin ( N/A )
       * [ ] member list
       * [ ] pending access

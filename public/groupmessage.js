@@ -131,6 +131,8 @@ const ELGroupMessageMenu =()=>{
     let encode = await Gun.SEA.encrypt(roomData,sec);
     //console.log(encode);
     const random_id = String.random(16);
+    
+
     user.get("groupmessage").get(random_id).put(encode);
 
     // Issue the wildcard certificate for all to write personal items to the 'profile'
@@ -162,6 +164,10 @@ const ELGroupMessageMenu =()=>{
       //   .get(userPair.pub)
       //   .put("true");
 
+      gunInstance.user()
+        .get('epub')
+        .put(roomPair.epub);
+
       // Put the certificate into the room graph for ease of later use
       gunInstance.user()
         .get('certs')
@@ -173,12 +179,22 @@ const ELGroupMessageMenu =()=>{
         .get('pending')
         .put(cert_pending);
 
-      let passphrase = await SEA.secret(userPair.epub,roomPair);
+      const genSharekey = String.random(16);
+      let dh = await SEA.secret(userPair.epub, roomPair);
+      const enc_share_key = await SEA.encrypt(genSharekey, dh);
+
       gunInstance.user()
         .get('keys')
         .get('messages')
         .get(userPair.pub)
-        .put(passphrase); // ?
+        .put(enc_share_key); // ?
+
+      // let passphrase = await SEA.secret(userPair.epub,roomPair);
+      // gunInstance.user()
+      //   .get('keys')
+      //   .get('messages')
+      //   .get(userPair.pub)
+      //   .put(passphrase); // ?
 
       let enc = await SEA.encrypt(roomPair, userPair)
       gunInstance.user()
@@ -199,7 +215,7 @@ const ELGroupMessageMenu =()=>{
       
       gunInstance.user().get('alias').put(groupName.val);
       gunInstance.user().get('information').put(groupInfo.val);
-      //not safe
+      //not safe ?
       //gunInstance.user().get('pub').put(roomPair.pub)
       //gunInstance.user().get('epub').put(roomPair.epub)
     });
@@ -343,6 +359,7 @@ const ELGroupMessageRoom =({api,groupID})=>{
   const ElMessages = div({style:"background-color:lightgray;width:600px;height:400px;overflow-y: scroll;"});
   const _groupID = van.state('');
   const message = van.state('');
+  const shareKey = van.state('');
   const isInit = van.state(false);
   //const gunNodeMessage = van.state(null);
   van.derive(()=>{
@@ -413,17 +430,32 @@ const ELGroupMessageRoom =({api,groupID})=>{
 
       const room = gunInstance.user(_groupID.val);
       let who = await room.then() || {};//get alias data
-      //console.log("room Data: ",who);
+      console.log("room Data: ",who);
       //TODO ENCODE
       if(!who.certs){console.log("No certs!");return;}
       //let dec = await Gun.SEA.secret(who.epub, userPair);
       //const cert = await room.get('certs').get('message').then();
+      let encsharekey = await room.get('keys').get('messages').get(userPair.pub);
+      if(encsharekey==null){
+        console.log("encsharekey NULL");
+        return;
+      }
+      console.log(encsharekey);
+      let dh = await SEA.secret(who.epub, userPair);
+      let _shareKey = await SEA.decrypt(encsharekey, dh);
+      console.log("shareKey: ", _shareKey);
+      if(_shareKey==null){
+        console.log("shareKey NULL");
+        return;
+      }
+      shareKey.val = _shareKey;
 
       room.get('messages').get(userPair.pub).map().once(async (data,key)=>{
         //console.log("data: ", data);
         //console.log("key: ", key);
-        //let content = await Gun.SEA.decrypt(data.content, dec);
-        let content = data.content;
+        let content = await Gun.SEA.decrypt(data.content, shareKey.val);
+
+        //let content = data.content;
         console.log("content: ",content);
         if(content){//check if exist
           messages.val = new Map(messages.val.set(key, {content:content}))
@@ -451,10 +483,8 @@ const ELGroupMessageRoom =({api,groupID})=>{
 
       //need to rework the build later...
       //let sec = await Gun.SEA.secret(who.epub, userPair); // Diffie-Hellman
-      //let enc_content = await Gun.SEA.encrypt(message.val, sec); //encrypt message
-
-      let enc_content = message.val;
-
+      let enc_content = await Gun.SEA.encrypt(message.val, shareKey.val); //encrypt message
+      //let enc_content = message.val;
       room.get('messages').get(userPair.pub).get(Gun.state()).put({
         content:enc_content
       },(ack)=>{
