@@ -19,7 +19,7 @@
  
  Gun Script has built in nodes for key and value system. Just like database but use different way a bit. There is "_" and "#" those I think are for pathing id and time stamp for key last time it change variable. To handle ref id node to get and put data for value.
 
- Is there way to delete those key value and the answer is yes and no as there is add on I think. But the righ answer is no. Since it peer to peer network as it restore data. The only way is to change the data is to null it.
+ Is there way to delete those key value and the answer is yes and no as there is add on I think. But the righ answer is no. Since it peer to peer network as it restore data. The only way is to change the data is to null it. Since it check key if there change in value.
 
  There are add ons for the Gun.js.
 

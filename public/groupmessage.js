@@ -10,7 +10,11 @@ const {
   select,
   option,
   input,
-  p
+  p,
+  table,
+  tbody,
+  tr,
+  td
 } = van.tags;
 
 import { 
@@ -321,6 +325,9 @@ const ELGroupMessageMenu =()=>{
       pending = "Admin";
     }else{
       pending = await room.get("pending").get(user._.sea.pub);
+      if(!pending){
+        pending = "Not Register";
+      }
     }
     console.log(pending);
 
@@ -400,10 +407,20 @@ const ElGroupInfo = ({
 //check for current group access and information.
 const ElGroupMessageOptions = ({closed,roomID})=>{
 
-  const view = van.state("information");
+  const view = van.state("certs");
 
   const viewRender = van.derive(()=>{
-    return ElCerts({roomID:roomID})
+
+    if(view.val == "certs"){
+      return ElCerts({roomID:roomID})
+    }
+    if(view.val == "members"){
+      return ElMembers({roomID:roomID})
+    }
+    if(view.val == "pending"){
+      return ElPending({roomID:roomID})
+    }
+    
   })
 
   return div({style:"width:800px;height:400px;"},
@@ -411,20 +428,271 @@ const ElGroupMessageOptions = ({closed,roomID})=>{
       button({onclick:()=>closed.val=true},'X')
     ),
     div(
-      button({onclick:()=>view.val='information'},'Information'),
+      //button({onclick:()=>view.val='information'},'Information'),
       button({onclick:()=>view.val='members'},'Members'),
       button({onclick:()=>view.val='pending'},'Pending'),
-      button({onclick:()=>view.val='blacklist'},'Blacklist'),
+      //button({onclick:()=>view.val='blacklist'},'Blacklist'),
       button({onclick:()=>view.val='certs'},'Certs'),
     ),
     viewRender
   )
 }
+const ElMembers = ({roomID})=>{
+
+  const userRegisters = van.state(new Map());
+  const groupID = van.state(roomID);
+
+  async function btnRefresh(){
+    console.log("roomID: ", roomID)
+    console.log("groupID: ", groupID.val)
+    const gun = gunState.val;
+    const user = gun.user();
+    const room = gun.user(roomID);
+    const roomData = await room.then();
+    if(!roomData.host){
+      console.log("NO HOST");
+      return;
+    }
+
+    room.get('members').map().once(async (data,key)=>{
+      console.log("key:", key)
+      console.log("data:", data)
+      let to = gun.user(key);
+      let who = await to.then();
+      if(!who.alias){
+        console.log("No Alias!");
+        return;
+      }
+      //use map to prevent same copy over lap
+      userRegisters.val = new Map(userRegisters.val.set(key,{alias:who.alias,pub:key,data:data}))
+    });
+  }
+
+  function btnGrant(id){
+    console.log("id: ",id);
+  }
+
+  function btnRevoke(id){
+    console.log("id: ",id);
+  }
+
+  function btnBan(id){
+    console.log("id: ",id);
+  }
+
+  return div(
+    div(
+      button({onclick:()=>btnRefresh()},"Refresh"),
+      label(" List "),
+    ),
+    div(
+      van.derive(()=>{
+        let userDatas = [];
+        let users = userRegisters.val;
+        users.forEach( (data, key, map) => {
+          userDatas.push(tr(
+            td(
+              label({},data.alias),
+            ),
+            td(
+              input({value:key,readonly:true}),
+            ),
+
+            td(
+              button({onclick:()=>btnGrant(key)}," Grant "),
+              button({onclick:()=>btnRevoke(key)}," Revoke "),
+              button({onclick:()=>btnBan(key)}," Ban "),
+            )
+          ));
+        });
+
+        return table(
+          tbody(
+            userDatas
+          )
+        );
+      })
+    )
+  );
+}
+
+const ElPending = ({roomID})=>{
+
+  const userRegisters = van.state(new Map());
+  const groupID = van.state(roomID);
+
+  async function btnRefresh(){
+    //console.log("roomID: ", roomID)
+    //console.log("groupID: ", groupID.val)
+    const gun = gunState.val;
+    const user = gun.user();
+    const room = gun.user(roomID);
+    const roomData = await room.then();
+    if(!roomData.host){
+      console.log("NO HOST");
+      return;
+    }
+
+    room.get('pending').map().once(async (data,key)=>{
+      console.log("key:", key)
+      console.log("data:", data)
+      let to = gun.user(key);
+      let who = await to.then();
+      if(!who.alias){
+        console.log("No Alias!");
+        return;
+      }
+      //use map to prevent same copy over lap
+      userRegisters.val = new Map(userRegisters.val.set(key,{alias:who.alias, pub:key, data:data}))
+    });
+  }
+
+  async function btnApprove(id){
+    console.log("id: ",id);
+    const gun = gunState.val;
+
+    let to = gun.user(id);
+    let who = await to.then();
+    if(!who.alias){
+      console.log("No Alias!");
+      return;
+    }
+    console.log("who: ", who);
+
+    const user = gun.user();
+    const userPair = user._.sea;
+    const room = gun.user(roomID);
+    console.log(user.is.pub)
+    console.log(user._.sea)
+    const enc_roomPair = await room.get('host').get(user.is.pub).then();
+    console.log(enc_roomPair)
+    const roomPair = await Gun.SEA.decrypt(enc_roomPair, user._.sea);
+    //auth to update data node
+    const gunInstance = Gun(location.origin+"/gun");
+    gunInstance.user().auth(roomPair, async function(ack){
+      //gunInstance.user().get('pending').get(id).put('Rejected');
+      let dh = await Gun.SEA.secret(userPair.epub, roomPair);
+      //get sharekey
+      let enc_shareKey = await gunInstance.user().get('keys').get('messages').get(userPair.pub).then();
+      let shareKey = await Gun.SEA.decrypt(enc_shareKey, dh);
+      console.log("shareKey: ", shareKey);
+
+      //enc sharekey for new member
+      let to_dh = await SEA.secret(who.epub, roomPair);
+      enc_shareKey = await SEA.encrypt(shareKey, to_dh);
+
+      gunInstance.user()
+        .get('keys')
+        .get('messages')
+        .get(who.pub)
+        .put(enc_shareKey); // ?
+
+      gunInstance.user()
+        .get('members')
+        .get(who.pub)
+        .put({
+          role:"member",
+          //cert:"",
+          //key:"",
+          ban:0
+        });
+    });
+  }
+
+  async function btnReject(id){
+    const gun = gunState.val;
+    const user = gun.user();
+    const room = gun.user(roomID);
+    console.log(user.is.pub)
+    console.log(user._.sea)
+    const enc_roomPair = await room.get('host').get(user.is.pub).then();
+    console.log(enc_roomPair)
+    const roomPair = await Gun.SEA.decrypt(enc_roomPair, user._.sea);
+    //auth to update data node
+    const gunInstance = Gun(location.origin+"/gun");
+    gunInstance.user().auth(roomPair, async function(ack){
+      gunInstance.user().get('pending').get(id).put('rejected');
+    });
+  }
+
+  return div(
+    div(
+      button({onclick:()=>btnRefresh()},"Refresh"),
+      label(" List "),
+    ),
+    div(
+      van.derive(()=>{
+        let userDatas = [];
+        let users = userRegisters.val;
+        users.forEach( (data, key, map) => {
+          userDatas.push(tr(
+            td(
+              label({},data.alias),
+            ),
+            td(
+              input({value:key,readonly:true}),
+            ),
+
+            td(
+              button({onclick:()=>btnApprove(key)}," Approve "),
+              button({onclick:()=>btnReject(key)}," Reject "),
+            )
+          ));
+        });
+
+        return table(
+          tbody(
+            userDatas
+          )
+        );
+      })
+    )
+  );
+}
+
 
 const ElCerts = ({roomID})=>{
 
-  function btnApplyMessage1Day(){
+  async function btnApplyMessage1Day(){
+    console.log("roomID: ", roomID)
+    const gun = gunState.val;
+    const user = gun.user();
+    const room = gun.user(roomID);
+    const roomData = await room.then();
+    if(!roomData.host){
+      console.log("NO HOST");
+      return;
+    }
+    let roomPair = {};
+    const userPair = user._.sea;
+    console.log("userPair: ", userPair);
+    let encRoomPair = await room.get('host').get(userPair.pub).then()
+    //encRoomPair
+    roomPair = await SEA.decrypt(encRoomPair, userPair);
+    console.log("roomPair: ",roomPair);
+    if(!roomPair){
+      console.log("FAIL ROOM PAIR");
+      return;
+    }
+    let expireTime = Gun.state() + (60*60*25*1000);
 
+    const cert_messages = await Gun.SEA.certify( 
+      '*',  // everybody is allowed to write
+      { '*':'messages', '+': '*' }, // to the path that starts with 'message' and along with the key has the user's pub in it
+      roomPair, //authority
+      (ack)=>{
+        console.log(ack);
+      }, //no need for callback here
+      { expiry: expireTime } // Let's set a one day expiration period
+    );
+    console.log("cert_messages: ", cert_messages)
+
+    const gunInstance = Gun(location.origin+"/gun");
+    gunInstance.user().auth(roomPair, async () => {
+      gunInstance.user().get('certs')
+        .get('messages')
+        .put(cert_messages);
+    })
   }
 
   async function btnApplyPending1Day(){
@@ -477,7 +745,7 @@ const ElCerts = ({roomID})=>{
   return div(
     div(
       label(' Message '),
-      button('1 Day ')
+      button({onclick:()=>btnApplyMessage1Day()},'1 Day ')
     ),
     div(
       label(' Pending '),
