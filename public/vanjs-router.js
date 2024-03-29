@@ -1,3 +1,9 @@
+/*
+  Project Name: vangunjs
+  License: MIT
+  Created By Lightnet
+  Type: Javascript Module
+*/
 
 // https://github.com/iuroc/vanjs-router
 // ts to js converter.

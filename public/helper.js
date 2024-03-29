@@ -1,3 +1,9 @@
+/*
+  Project Name: vangunjs
+  License: MIT
+  Created By Lightnet
+  Type: Javascript Module
+*/
 
 // https://stackoverflow.com/questions/11893083/convert-normal-date-to-unix-timestamp
 // parseInt((new Date('2012.08.10').getTime() / 1000).toFixed(0))

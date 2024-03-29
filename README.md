@@ -83,7 +83,7 @@ let message = "hello world";
 gun.user("to pub key")
   .get("message")
   .get('current login public key')
-  .get('date')
+  .get('date') // goes by format or int number
   .put(message,null, {opt:{cert:cert}});
 ```
   Note this without much encrypted but public message expose.
@@ -126,7 +126,7 @@ gun.user("to pub key")
     * [x] encode messages ( )
     * [ ] admin ( wip )
       * [x] member list
-         * [x] grant access
+         * [ ] grant access
          * [ ] revoke access
          * [ ] ban access
       * [x] certify (public and private access graph node write)

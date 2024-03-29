@@ -1,4 +1,11 @@
-// for public and private group message
+/*
+  Project Name: vangunjs
+  License: MIT
+  Created By Lightnet
+  Type: Javascript Module
+*/
+
+// for group message
 // https://github.com/Lightnet/jsvuegunui/blob/main/src/components/groupmessage/GroupMessage.vue
 
 import {van} from '/dps.js';
@@ -71,9 +78,23 @@ const ELGroupMessageMenu =()=>{
     //}
   })
 
-  function btnJoin(){
+  async function btnJoin(){
     //api({action:"join", groupID:groupID.val})
     if(typeof groupID.val === 'string' && groupID.val.length != 0 ){
+      const gun = gunState.val;
+      const roomNode = gun.user(groupID.val);
+      const user = gun.user();
+      console.log(user.is.pub);
+      let member = await roomNode.get('members').get(user.is.pub).then();
+      console.log("member: ", member)
+      if(member){
+        //need to check ban...
+        console.log("member: ", member)
+      }else{
+        board.show({message: "Reject Non Member!", durationSec: 1});
+        console.log("Not Member!");
+        return;
+      }
       routeTo('groupmessageroom', [groupID.val]);
       closed.val = true;
     }

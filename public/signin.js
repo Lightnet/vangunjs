@@ -1,3 +1,10 @@
+/*
+  Project Name: vangunjs
+  License: MIT
+  Created By Lightnet
+  Type: Javascript Module
+*/
+
 // https://gun.eco/docs/Auth
 
 import {van} from '/dps.js';

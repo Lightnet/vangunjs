@@ -1,3 +1,10 @@
+/*
+  Project Name: vangunjs
+  License: MIT
+  Created By Lightnet
+  Type: Javascript Module
+*/
+
 import fs from 'fs';
 import Gun from 'gun';
 import http from 'http';

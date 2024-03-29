@@ -1,5 +1,9 @@
-
-
+/*
+  Project Name: vangunjs
+  License: MIT
+  Created By Lightnet
+  Type: Javascript Module
+*/
 
 import {van} from '/dps.js';
 import { 

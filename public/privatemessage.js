@@ -1,25 +1,21 @@
+/*
+  Project Name: vangunjs
+  License: MIT
+  Created By Lightnet
+  Type: Javascript Module
+*/
 
 import { gunUnixToDate, unixTime, unixToDate } from './helper.js';
 import { routeTo } from '/vanjs-router.js';
-import { 
-  isLogin,
-  gunState,
-  aliasState,
-} from '/context.js';
+import { isLogin, gunState, aliasState} from '/context.js';
 import { Modal, MessageBoard } from "vanjs-ui";
 import {van} from '/dps.js';
 const {
-  button, 
   div, 
+  button, input, textarea,
   label,
-  input,
-  textarea,
-  table,
-  tbody,
-  tr,
-  td,
-  select,
-  option,
+  table, tbody, tr, td,
+  select, option,
 } = van.tags;
 
 const ElPrivateMessage = ()=>{

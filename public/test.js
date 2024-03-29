@@ -1,3 +1,10 @@
+/*
+  Project Name: vangunjs
+  License: MIT
+  Created By Lightnet
+  Type: Javascript Module
+*/
+
 import 'https://cdn.jsdelivr.net/npm/gun/gun.js';
 import 'https://cdn.jsdelivr.net/npm/gun/sea.js';
 

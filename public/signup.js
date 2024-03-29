@@ -1,5 +1,11 @@
-import {van} from '/dps.js';
+/*
+  Project Name: vangunjs
+  License: MIT
+  Created By Lightnet
+  Type: Javascript Module
+*/
 
+import {van} from '/dps.js';
 import { gunState, board } from '/context.js';
 import { QRCode } from '/qrcode.min.js';
 
