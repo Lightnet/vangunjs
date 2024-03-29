@@ -4,17 +4,11 @@
 import {van} from '/dps.js';
 import { Modal } from 'vanjs-ui'; //modal
 const {
-  button,
-  div, 
-  label,
-  select,
-  option,
+  button, div, label,
+  select, option,
   input,
   p,
-  table,
-  tbody,
-  tr,
-  td
+  table, tbody, tr, td, thead
 } = van.tags;
 
 import { 
@@ -43,8 +37,7 @@ const ElGroupMessage = ()=>{
 
 const ELGroupMessageMenu =()=>{
   const closed = van.state(false);//create group
-  const closedOptions = van.state(false);//create group
-
+  //const closedOptions = van.state(false);//create group
   const groupName = van.state('');
   const groupInfo = van.state('None');
   const groupID = van.state('');
@@ -52,7 +45,7 @@ const ELGroupMessageMenu =()=>{
   const groupMessages = van.state(new Map());
   const isModalCreate = van.state(true);
   const ElRoomInfo = div();
-
+  const isAdmin = van.state(false);
 
   function onChangeGroupMessageSel(e){
     //console.log(e.target.value)
@@ -62,7 +55,7 @@ const ELGroupMessageMenu =()=>{
       groupID.val = groupData.pub;
     }
   }
-
+  //group messages list select options
   van.derive(()=>{
     const nodes = groupMessages.val;
     //console.log(nodes);
@@ -72,7 +65,7 @@ const ELGroupMessageMenu =()=>{
       for(const [key, groupData] of nodes){
         if(groupData != "null"){
           //console.log("key: ",key);
-          van.add(GroupMessageSel, option({value:key},groupData.name));
+          van.add(GroupMessageSel, option({value:key},groupData.alias));
         }
       }
     //}
@@ -87,6 +80,10 @@ const ELGroupMessageMenu =()=>{
   }
 
   function btnShowOptions(){
+    
+  }
+
+  function btnShowAdmin(){
     van.add(document.body, Modal({closed},
       ElGroupMessageOptions({closed,roomID:groupID.val}),
     ))
@@ -126,11 +123,11 @@ const ELGroupMessageMenu =()=>{
     //console.log(user._.sea)
     let userPair = user._.sea;
 
-    let sec = await Gun.SEA.secret(userPair.pub,userPair)//default?
+    let sec = await Gun.SEA.secret(userPair.pub,userPair); // default?
 
     let roomData ={
       pub:roomPair.pub,
-      name:groupName.val,
+      alias:groupName.val,
       key:roomPair
     }
 
@@ -138,7 +135,7 @@ const ELGroupMessageMenu =()=>{
     //console.log(encode);
     const random_id = String.random(16);
     
-    user.get("groupmessage").get(random_id).put(encode);
+    user.get("groupmessages").get(random_id).put(encode);
 
     // Issue the wildcard certificate for all to write personal items to the 'profile'
     const cert_message = await Gun.SEA.certify( 
@@ -217,7 +214,6 @@ const ELGroupMessageMenu =()=>{
           ban:0
         });
 
-      
       gunInstance.user().get('alias').put(groupName.val);
       gunInstance.user().get('information').put(groupInfo.val);
       //not safe ?
@@ -232,25 +228,49 @@ const ELGroupMessageMenu =()=>{
     const user = gun.user();
     let userPair = user._.sea;
     groupMessages.val = new Map();
-    user.get("groupmessage").map().once(async (data,key)=>{
-      //console.log("data: ",data)
+    user.get("groupmessages").map().once(async (data,key)=>{
+      console.log("data: ",data);
+      console.log("key: ",key);
       if (data == "null"){return;}
       if(data){
-        let sec = await SEA.secret(userPair.pub,userPair)//default?
+        let sec = await SEA.secret(userPair.pub,userPair) // default?
+
         let decode = await SEA.decrypt(data,sec);
-        //console.log("decode: ", decode)
+        console.log("decode: ", decode)
         if(decode){
           groupMessages.val = new Map(groupMessages.val.set(key, decode));
           //setRooms(state=>[...state,decode])
           //console.log(groupMessages.val);
         }
       }
-    })
+    });
+    board.show({message: "Update Group Messages!", durationSec: 1});
 
   }
 
-  function btnAddgroupID(){
+  async function btnAddgroupID(){
     const gun = gunState.val;
+    const room = gun.user(groupID.val);
+    const roomData = await room.then();
+    if(!roomData?.host){
+      isAdmin.val = false;
+      console.log("NO HOST!")
+      return;
+    }
+    const user = gun.user();
+    const userPair = user._.sea;
+    let sec = await Gun.SEA.secret(userPair.pub,userPair)//default?
+    var roomInfo = {
+      alias:roomData.alias,
+      pub:groupID.val,
+      information:roomData.information,
+    }
+
+    let enc_room = await Gun.SEA.encrypt(roomInfo, sec);
+    const random_id = String.random(16);
+    user.get("groupmessages").get(random_id).put(enc_room);
+    board.show({message: "Group Message Added!", durationSec: 1});
+
   }
 
   function btnDeletegroupID(){
@@ -265,7 +285,7 @@ const ELGroupMessageMenu =()=>{
           const gun = gunState.val;
           const user = gun.user();
 
-          user.get("groupmessage").get(key).put("null");
+          user.get("groupmessages").get(key).put("null");
           groupID.val = "";
           let messageids = nodes.delete(key);
           console.log(nodes);
@@ -279,29 +299,34 @@ const ELGroupMessageMenu =()=>{
     //refreshGroupMessages();
   }
 
+  //input public key input
   van.derive(async ()=>{
     //console.log(groupID.val);
     const gun = gunState.val;
     const user = gun.user();
     
     if(typeof groupID.val === 'string' && groupID.val.length ===0){
+      isAdmin.val = false;
       return;
     }
     ElRoomInfo.innerText = "";
-    console.log("ROOM ID:: ",groupID.val)
+    //console.log("ROOM ID:: ",groupID.val)
     const room = gun.user(groupID.val);
+    //console.log("USER room:", room)
     const roomData = await room.then();
-    if(!roomData.host){
-      console.log("NO HOST!")
+    console.log("roomData: ", roomData);
+    if(!roomData?.host){
+      isAdmin.val = false;
+      console.log("NO HOST!");
       return;
     }
     let cert_pending = await room.get('certs').get('pending').then();
-    console.log("cert_pending: ",cert_pending);
+    //console.log("cert_pending: ",cert_pending);
     let expireDate = "Not Set!";
     if(cert_pending){
       let timeexp = parseInt(cert_pending.split(",")[1].split(":")[1]);
-      console.log("TIME: ", timeexp);
-      console.log("TIME: ", gunUnixToDate(timeexp));
+      //console.log("TIME: ", timeexp);
+      //console.log("TIME: ", gunUnixToDate(timeexp));
       expireDate = gunUnixToDate(timeexp);
     }
 
@@ -317,19 +342,21 @@ const ELGroupMessageMenu =()=>{
     let owner = await gun.user(pub).then();
     console.log(owner);
     if(!owner.alias){
-      console.log("Can't find Alias Name!")
+      //console.log("Can't find Alias Name!");
       return;
     }
     let pending = "";
     if(pub == user._.sea.pub){
       pending = "Admin";
+      isAdmin.val = true;
     }else{
+      isAdmin.val = false;
       pending = await room.get("pending").get(user._.sea.pub);
       if(!pending){
         pending = "Not Register";
       }
     }
-    console.log(pending);
+    //console.log(pending);
 
     van.add(ElRoomInfo, ElGroupInfo({
       alias:roomData.alias,
@@ -340,10 +367,21 @@ const ELGroupMessageMenu =()=>{
     }))
   });
 
+  async function copyGroupMessageID(){
+    try {
+      await navigator.clipboard.writeText(groupID.val);
+      board.show({message: "Copy Room ID!", durationSec: 1});
+      //console.log('Content copied to clipboard');
+    } catch (err) {
+      //console.error('Failed to copy: ', err);
+      board.show({message: "Fail Copy Room ID!", durationSec: 1});
+    }
+  }
+
   return closed.val ? null : div(
     div(
       button({onclick:()=>refreshGroupMessages()},'Refresh'),
-      label("Group Message Pub:"),
+      label({onclick:()=>copyGroupMessageID()},"Group Messages:"),
       GroupMessageSel,
       input({value:groupID,oninput:e=>groupID.val=e.target.value,placeholder:"Room ID Key"}),
       button({onclick:()=>btnJoin()},'Join'),
@@ -351,6 +389,14 @@ const ELGroupMessageMenu =()=>{
       button({onclick:()=>btnDeletegroupID()},'Delete'),
       button({onclick:()=>btnShowCreate()},'Create'),
       button({onclick:()=>btnShowOptions()},'Options'),
+      van.derive(()=>{
+        if(isAdmin.val){
+          return button({onclick:()=>btnShowAdmin()},'Admin');
+        }else{
+          return button({disabled:true},'Admin');
+        }
+        
+      }),
     ),
     ElRoomInfo
   );
@@ -363,6 +409,17 @@ const ElGroupInfo = ({
   pub,
   expire,
 })=>{
+
+  async function copyPublicKey(){
+    try {
+      await navigator.clipboard.writeText(pub);
+      board.show({message: "Copy Room ID!", durationSec: 1});
+      //console.log('Content copied to clipboard');
+    } catch (err) {
+      //console.error('Failed to copy: ', err);
+      board.show({message: "Fail Copy Room ID!", durationSec: 1});
+    }
+  }
 
   async function btnApply(){
     const gun = gunState.val;
@@ -383,19 +440,20 @@ const ElGroupInfo = ({
 
   return div(
     div(
-      label("Group Name: "+alias)
+      label(" Group Message Name: "+alias)
     ),
     div(
-      label("Public Key: " + pub)
+      button({onclick:()=>copyPublicKey()}," Public Key: "),
+      input({value:pub,readonly:true})
     ),
     div(
-      label("Host:"+ host)
+      label(" Host: "+ host)
     ),
     div(
-      label("Expire Date:" + expire)
+      label(" Expire Date: " + expire)
     ),
     div(
-      label("Pending:" + pending)
+      label(" Pending: " + pending)
     ),
     div(
       label("Actions:"),
@@ -443,10 +501,10 @@ const ElMembers = ({roomID})=>{
   const groupID = van.state(roomID);
 
   async function btnRefresh(){
-    console.log("roomID: ", roomID)
-    console.log("groupID: ", groupID.val)
+    //console.log("roomID: ", roomID);
+    //console.log("groupID: ", groupID.val);
     const gun = gunState.val;
-    const user = gun.user();
+    //const user = gun.user();
     const room = gun.user(roomID);
     const roomData = await room.then();
     if(!roomData.host){
@@ -507,6 +565,13 @@ const ElMembers = ({roomID})=>{
         });
 
         return table(
+          thead(
+            tr(
+              td(label(' Alias: ')),
+              td(label(' Public Key: ')),
+              td(label(' Actions: ')),
+            )
+          ),
           tbody(
             userDatas
           )
@@ -603,10 +668,11 @@ const ElPending = ({roomID})=>{
     const gun = gunState.val;
     const user = gun.user();
     const room = gun.user(roomID);
-    console.log(user.is.pub)
-    console.log(user._.sea)
+    //console.log(user.is.pub)
+    //console.log(user._.sea)
+    //decode to get pair key room from owner alias
     const enc_roomPair = await room.get('host').get(user.is.pub).then();
-    console.log(enc_roomPair)
+    //console.log(enc_roomPair)
     const roomPair = await Gun.SEA.decrypt(enc_roomPair, user._.sea);
     //auth to update data node
     const gunInstance = Gun(location.origin+"/gun");
@@ -632,7 +698,6 @@ const ElPending = ({roomID})=>{
             td(
               input({value:key,readonly:true}),
             ),
-
             td(
               button({onclick:()=>btnApprove(key)}," Approve "),
               button({onclick:()=>btnReject(key)}," Reject "),
@@ -641,6 +706,13 @@ const ElPending = ({roomID})=>{
         });
 
         return table(
+          thead(
+            tr(
+              td(label(' Alias: ')),
+              td(label(' Public Key: ')),
+              td(label(' Actions: ')),
+            )
+          ),
           tbody(
             userDatas
           )
@@ -649,7 +721,6 @@ const ElPending = ({roomID})=>{
     )
   );
 }
-
 
 const ElCerts = ({roomID})=>{
 
@@ -753,8 +824,6 @@ const ElCerts = ({roomID})=>{
     )
   )
 }
-
-
 
 const ELGroupMessageRoom =({api,groupID})=>{
 

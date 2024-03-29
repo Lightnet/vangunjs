@@ -20,6 +20,13 @@ const {
   input
 } = van.tags;
 
+const ElDisplayAlias = ()=>{
+
+  const userName = van.derive(()=>aliasState.val);
+
+  return label(userName)
+}
+
 const ElAccount = ()=>{
 
   const view = van.state('profile');
@@ -254,5 +261,6 @@ const accountCerts = ()=>{
 }
 
 export {
-  ElAccount
+  ElAccount,
+  ElDisplayAlias
 }

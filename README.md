@@ -112,7 +112,7 @@ gun.user("to pub key")
     * [x] compose (add test)
     * [x] certify expire options
     * [ ] public message
-    * [ ] private message
+    * [x] private message
   * [x] account
     * [x] change passphrase
     * [x] hint
@@ -120,15 +120,20 @@ gun.user("to pub key")
   * [ ] group message (wip)
     * [x] create group (wip)
     * [x] join ( wip )
-    * [ ] add ( wip )
+    * [x] add ( wip )
     * [x] delete ( wip )
     * [x] public messages ( added)
-    * [ ] encode messages ( )
+    * [x] encode messages ( )
     * [ ] admin ( wip )
-      * [ ] member list
+      * [x] member list
+         * [x] grant access
+         * [ ] revoke access
+         * [ ] ban access
       * [x] certify (public and private access graph node write)
-        * [x] pending for register pub key for access
-        * [ ] message pulbic for pub key
+        * [x] pending for register pub key for access (wip)
+          * [x] approve
+          * [x] reject
+        * [x] message pulbic for pub key (wip)
       * [ ] encrypt key ( encode message )
       * [ ] blacklist
       * [ ] delete ( N/A , is it possible? )

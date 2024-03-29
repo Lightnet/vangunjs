@@ -13,7 +13,7 @@ import { ELSignin } from './signin.js';
 import { ELSignup } from './signup.js';
 import { ElHome } from './home.js';
 import { ELGroupMessageRoom, ElGroupMessage } from './groupmessage.js';
-import { ElAccount } from './account.js';
+import { ElAccount, ElDisplayAlias } from './account.js';
 import { btnSignOut } from './signout.js';
 import { ElPrivateMessage } from './privatemessage.js';
 
@@ -68,6 +68,9 @@ const App=()=>{
     ),
     Route({ name: 'signout' },
       button({ onclick: () => routeTo('home') }, 'Back To Home'), ' ',
+      ' [Alias: ',
+      ElDisplayAlias(),
+      ' ] ',
       ' Sign Out ',
       btnSignOut()
     ),
@@ -79,6 +82,9 @@ const App=()=>{
     Route({ name: 'privatemessage' },
       button({ onclick: () => routeTo('home') }, 'Back To Home'), ' ',
       'Private Message',
+      ' [Alias: ',
+      ElDisplayAlias(),
+      ' ] ',
       ElPrivateMessage()
     ),
     //Route({ name: 'chatroom' },
@@ -88,6 +94,9 @@ const App=()=>{
     Route({ name: 'groupmessage' },
       button({ onclick: () => routeTo('home') }, 'Back To Home'), ' ',
       'Group Message',
+      ' [Alias: ',
+      ElDisplayAlias(),
+      ' ] ',
       ElGroupMessage()
     ),
     ()=>{
