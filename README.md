@@ -15,9 +15,9 @@
 # Private Message:
  Note this is my own understanding a bit. It might right and wrong. Which require some testing.
 
- Note that the SEA.pair() keys, SEA.certify() and Gun() graph nodes are handle in javascript query link chains nodes. 
+ Note that the SEA.pair() keys, SEA.certify() and Gun() graph nodes are handle in javascript query link chains nodes. Meaning that gun (database) and sea (auth) will check the link graph nodes to make sure it cert by the user pair keys.
  
- Gun Script has built in nodes for key and value system. As well the peer to peer network. Just like database but use different way a bit. There is "_" and "#" those I think are for pathing id and time stamp for key last time it change variable. To handle ref id node to get and put data for value. As well trigger events for sync to peer to peer value change to other peer to see if node is link their events. It reason it change real time variable or value change that put data into the graph node system. For example user online status change variable. It will alert other users who follow public key.
+ Gun Script has built in nodes for key and value system. As well the peer to peer network. Just like database but use different way a bit. There is "_" and "#" those I think are for pathing id and time stamp for key last time it change variable. To handle ref id node to get and put data for value. As well trigger events for sync to peer to peer value change to other peer to see if node is link their events. It reason it change real time variable or value change that put data into the graph node system. For example user online status change variable. It will alert other users who follow public key. There is video and site demo on github for gun.js.
 
  Is there way to delete those key value and the answer is yes and no as there is add on I think. But the righ answer is no. Since it peer to peer network as it restore data. The only way is to change the data is to null it. Since it check key if there change in value.
 
@@ -64,7 +64,7 @@ const cert = await Gun.SEA.certify(
   null, //no need for callback here
   { expiry: expireTime }
 );
-//need to be login to put data into the current user.
+//need to be login to put data into the current user. It can be store or not. Required more scripting.
 gun.user()
     .get('certs')
     .get('privatemessage')
