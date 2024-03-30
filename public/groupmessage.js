@@ -94,7 +94,11 @@ const ELGroupMessageMenu =()=>{
       console.log("member: ", member)
       if(member){
         //need to check ban...
-        console.log("member: ", member)
+        console.log("member: ", member);
+        if(member?.ban==1){
+          board.show({message: "Rejected current member is Ban !", durationSec: 1});
+          return;
+        }
       }else{
         board.show({message: "Reject Non Member!", durationSec: 1});
         console.log("Not Member!");
@@ -559,12 +563,12 @@ const ElMembers = ({roomID})=>{
     }
 
     room.get('members').map().once(async (data,key)=>{
-      console.log("key:", key)
-      console.log("data:", data)
+      //console.log("key:", key)
+      //console.log("data:", data)
       let to = gun.user(key);
       let who = await to.then();
       if(!who.alias){
-        console.log("No Alias!");
+        //console.log("No Alias!");
         return;
       }
       //use map to prevent same copy over lap
@@ -631,7 +635,6 @@ const ElMembers = ({roomID})=>{
 
   async function btnRevoke(id){
     console.log("id: ",id);
-    console.log("id: ",id);
     const gun = gunState.val;
 
     let to = gun.user(id);
@@ -645,19 +648,61 @@ const ElMembers = ({roomID})=>{
     const user = gun.user();
     const userPair = user._.sea;
     const room = gun.user(groupID.val);
-    console.log(user.is.pub)
-    console.log(user._.sea)
+    console.log("userPair: ", userPair)
     const enc_roomPair = await room.get('host').get(user.is.pub).then();
     if(!enc_roomPair){
-      console.log("NOT OWNER");
+      console.log("NO OWNER");
       return;
     }
-    console.log(enc_roomPair)
+    //console.log(enc_roomPair);
     const roomPair = await Gun.SEA.decrypt(enc_roomPair, user._.sea);
+    console.log("roomPair: ", roomPair);
+
     //instance of gun
     const gunInstance = Gun(location.origin+"/gun");
     //auth to update data node
     gunInstance.user().auth(roomPair, async function(ack){
+
+      gunInstance.user().get("members").get(who.pub).get('ban').put(1);
+      let enc_shareKey = await gunInstance.user().get('keys').get('messages').get(userPair.pub).then();
+      let dh = await Gun.SEA.secret(userPair.epub, roomPair);
+      let shareKey = await Gun.SEA.decrypt(enc_shareKey, dh);
+      console.log("shareKey: ", shareKey);
+      //save backup admin only access
+      gunInstance.user()
+        .get("keyrecords")
+        .get('messages')
+        .get(""+Gun.state())//time stamp
+        .put(enc_shareKey);
+
+      let genSharekey = String.random(16);
+      console.log("genSharekey: ", genSharekey);
+
+      gunInstance.user().get("members").map().once(async (data,key)=>{
+        console.log("key:", key)
+        console.log("data:", data)
+        let to = gun.user(key);
+        let who = await to.then();
+        //check for ban later...
+        if(!who.alias){
+          console.log("No Alias!");
+          return;
+        }
+        //enc key
+        let enc_share_key = "null";
+        if(data.ban == 1){
+          //if ban default "null" as string
+        }else{
+          let dh = await SEA.secret(who.epub, roomPair);
+          enc_share_key = await SEA.encrypt(genSharekey, dh);
+        }
+        gunInstance.user()
+        .get('keys')
+        .get('messages')
+        .get(who.pub)
+        .put(enc_share_key);
+        
+      });
 
     });
 
@@ -742,6 +787,7 @@ const ElMembers = ({roomID})=>{
         let userDatas = [];
         let users = userRegisters.val;
         users.forEach( (data, key, map) => {
+          console.log(data);
           userDatas.push(tr(
             td(
               label({},data.alias),
@@ -749,11 +795,13 @@ const ElMembers = ({roomID})=>{
             td(
               input({value:key,readonly:true}),
             ),
-
+            td(
+              label(data.data.ban),
+            ),
             td(
               button({onclick:()=>btnGrant(key)}," Grant "),
               button({onclick:()=>btnRevoke(key)}," Revoke "),
-              button({onclick:()=>btnBan(key)}," Ban "),
+              //button({onclick:()=>btnBan(key)}," Ban "),
             )
           ));
         });
@@ -763,6 +811,7 @@ const ElMembers = ({roomID})=>{
             tr(
               td(label(' Alias: ')),
               td(label(' Public Key: ')),
+              td(label(' Ban: ')),
               td(label(' Actions: ')),
             )
           ),

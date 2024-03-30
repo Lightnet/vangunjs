@@ -140,13 +140,14 @@ console.log(msg);
     * [x] pub (look up for access expire graph node key)
     * [x] compose (add test)
     * [x] certify expire options
-    * [ ] public message
-    * [x] private message
+    * [x] public message using just pairs
+    * [ ] private message layers
   * [x] account
     * [x] change passphrase
     * [x] hint
     * [ ] profile
-  * [ ] group message (wip)
+    * [ ] forgot passphrase
+  * [x] group message (wip)
     * [x] create group (wip)
     * [x] join ( wip )
     * [x] add ( wip )
@@ -155,17 +156,17 @@ console.log(msg);
     * [x] encode messages ( )
     * [ ] admin ( wip )
       * [x] member list
-         * [ ] grant access
-         * [ ] revoke access
-         * [ ] ban access
+         * [x] grant access
+         * [x] revoke access
+         * [ ] ban access ?
       * [x] certify (public and private access graph node write)
         * [x] pending for register pub key for access (wip)
           * [x] approve
           * [x] reject
         * [x] message pulbic for pub key (wip)
       * [ ] encrypt key ( encode message )
-      * [ ] blacklist
-      * [ ] delete ( N/A , is it possible? )
+      * [ ] blacklist ?
+      * [ ] delete ( N/A , is it possible? ) ?
 
 # Blacklist:
  User will have certify keys if they are blacklist. It would required to set up blacklist node and code filter when doing map event call. As long there is expire date and user must maintain certs to not to expire. So there no way to delete since it sync with peer to peer network. Reason no delete is that node will restore it self if peer to peer. It can be only change in the node. The admin (sea pair node owner access) would revoke certify current room graph or change the expire date. If they manage to save before remove the only way is set up.
