@@ -1125,6 +1125,16 @@ const ELGroupMessageRoom =()=>{
       console.log("room Data: ",who);
       //TODO ENCODE
       if(!who.certs){console.log("No certs!");return;}
+      let alias_obj = await room.get('host').then();
+      let alias_keys = Object.keys(alias_obj);
+      for(let i = 0;i < alias_keys.length;++i){
+        if(Gun.SEA.opt.pub("~"+alias_keys[i])){
+          if(alias_keys[i] == userPair.pub){//match admin pub
+            isAdmin.val = true;
+            break;
+          }
+        }
+      }
       //let dec = await Gun.SEA.secret(who.epub, userPair);
       //const cert = await room.get('certs').get('message').then();
       let encsharekey = await room.get('keys').get('messages').get(userPair.pub);
@@ -1224,8 +1234,10 @@ const ELGroupMessageRoom =()=>{
     let pub = "";
     for(let i = 0;i < alias_keys.length;++i){
       if(Gun.SEA.opt.pub("~"+alias_keys[i])){
-        pub = alias_keys[i];
-        break;
+        if(alias_keys[i] == userPair.pub){
+          isAdmin.val = true;
+          break;
+        }
       }
     }
     let owner = await gun.user(pub).then();
@@ -1234,10 +1246,6 @@ const ELGroupMessageRoom =()=>{
       //console.log("Can't find Alias Name!");
       return;
     }
-    if(pub == user._.sea.pub){
-      isAdmin.val = true;
-    }
-
     console.log(roomData);
     roomName.val = roomData.alias;
   }
