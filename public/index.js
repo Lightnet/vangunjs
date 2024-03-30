@@ -117,34 +117,25 @@ const App=()=>{
           }else{
             console.log("SET ROOM ID", id);
             roomID.val = id;
-            van.add(document.body, ELGroupMessageRoom({groupID:id}));
+            //van.add(document.body, ELGroupMessageRoom({groupID:id}));
           }
         }
       },
       van.derive(()=>{
-        // let roomId = roomID.val;
+        let roomId = roomID.val;
         // console.log("roomId: ",roomId);
-        // if(typeof roomId === 'string' && roomId.length > 0){
-        //   return ELGroupMessageRoom({groupID:roomId});
-        // }else{
-        //   console.log("roomId: ",roomId);
-        //   return div('Error || None Room ID!');
-        // }
+        if(typeof roomId === 'string' && roomId.length > 0){
+          return ELGroupMessageRoom({groupID:roomId});
+        }else{
+          console.log("roomId: ",roomId);
+          return div('Error || None Room ID!');
+        }
       })
       //div('group Id: ', roomID),
       //testKey({id:roomID})
       )
     }
   )
-}
-
-const testKey = ({id})=>{
-  //console.log("KEY", id);
-  const msg = van.derive(()=>{
-    console.log("derive id: ",id.val);
-    //console.log(id);
-  });
-  return label('TESTS '+ id);
 }
 
 van.add(document.body, App())

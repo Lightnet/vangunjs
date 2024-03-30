@@ -86,9 +86,38 @@ gun.user("to pub key")
   .get('date') // goes by format or int number
   .put(message,null, {opt:{cert:cert}});
 ```
-  Note this without much encrypted but public message expose.
+  Note this without much encrypted but public message expose. But the SEA has feature that use is Elliptic-curve Diffie–Hellman.
+
+```js
+var alice = await SEA.pair();
+var bob = await SEA.pair();
+
+// alice
+var sec = await SEA.secret(bob.epub, alice); //<- handle different from two pair that is trusted
+var enc = await SEA.encrypt('shared data', sec);
+
+// bob
+var sec2 = SEA.secret(alice.epub, bob);//<- handle different from two pair that is trusted
+var msg = await SEA.decrypt(enc, sec2);
+console.log(msg);
+```
+  As log the key that expose pub and epub to encode and decode the data. But the other keys should not be expose to anyone.
+
+  https://gun.eco/docs/SEA
+
+# Group Message:
+  It is tricky to set up group message since it need pair keys to talk to group of users. As well write permission with permits.
+
+  If there another user join without permission they can view graph nodes.
+
+  There current two ways. One is encypted message that still is public. The other is share key is add another layer. Don't forget about the SEA.certify(). It never set the expire date to none.
 
 # Gun
+  Gun Graph database. One is server and other client. As features of graph node, key and value. Read more on this site link. https://gun.eco/docs/RAD One reason is reduce data size.
+
+# Security, Encryption, & Authorization - SEA:
+  This added layer on gun graph node. It will loop throught those nodes to make those keys are vaild user who own and write the data. With the certify it would be easy to handle write permission. Note it take time to process the data.
+
 
 # Features:
  * UI

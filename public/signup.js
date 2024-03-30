@@ -24,7 +24,7 @@ import { routeTo } from '/vanjs-router.js';
 
 const ELSignup = ()=>{
 
-  const isPairLogin = van.state(true);
+  const isPairLogin = van.state(false);
   const viewRender = van.derive(()=>{
     if(isPairLogin.val){
       return ElPairSignUp();
