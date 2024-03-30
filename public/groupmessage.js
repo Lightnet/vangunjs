@@ -10,9 +10,7 @@
 
 import { 
   navigate, 
-  getRouterPathname, 
-  getRouterParams, 
-  getRouterQuery 
+  getRouterPathname
 } from "vanjs-routing";
 import {van} from '/dps.js';
 import { Modal } from 'vanjs-ui'; //modal
@@ -287,7 +285,8 @@ const ELGroupMessageMenu =()=>{
     const roomData = await room.then();
     if(!roomData?.host){
       isAdmin.val = false;
-      console.log("NO HOST!")
+      board.show({message: "No Room ID!", durationSec: 1});
+      ///console.log("NO HOST!");
       return;
     }
     const user = gun.user();
@@ -306,8 +305,18 @@ const ELGroupMessageMenu =()=>{
 
   }
 
-  function btnDeletegroupID(){
+  async function btnDeletegroupID(){
     console.log(groupID.val);
+    const gun = gunState.val;
+    const room = gun.user(groupID.val);
+    const roomData = await room.then();
+    if(!roomData?.host){
+      isAdmin.val = false;
+      board.show({message: "No Room ID!", durationSec: 1});
+      ///console.log("NO HOST!");
+      return;
+    }
+
     const nodes = groupMessages.val;
     for(const [key, groupData] of nodes){
       console.log(groupData);
@@ -410,6 +419,9 @@ const ELGroupMessageMenu =()=>{
       board.show({message: "Fail Copy Room ID!", durationSec: 1});
     }
   }
+
+  //init 
+  refreshGroupMessages();
 
   return closed.val ? null : div(
     div(
@@ -1181,7 +1193,7 @@ const ELGroupMessageRoom =()=>{
   //initGroupMessage();
 
   function btnGetInfo(){
-    console.log(groupID)
+    console.log("_groupID: ",_groupID.val)
   }
 
   async function copyRoomId(){

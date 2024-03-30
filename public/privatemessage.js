@@ -61,18 +61,13 @@ const ElPrivateMessage = ()=>{
 const ElPriaveMessageBox = ()=>{
 
   const board = new MessageBoard({top: "20px"})
-
   const publicKey = van.state('');
   const messages = van.state(new Map());
   const message = van.state('');
   const isAccess = van.state(true);
-
-  //const messageList = div({style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"});
   const publicKeys = van.state(new Map());
-
   const aliasNode = label('None');
   const expireNode = label('None');
-
   const ElPublicKeys = select({style:"width:200px;",onclick:(e)=>onChangePublicKeys(e),onchange:(e)=>onChangePublicKeys(e)})
 
   function clickSelect(e){
@@ -149,8 +144,7 @@ const ElPriaveMessageBox = ()=>{
   }
 
   //https://github.com/vanjs-org/van/discussions/220
-
-  function UpdatePublicMessages(){
+  function getMessagesPublicKeys(){
     const gun = gunState.val;
     const user = gun.user();
     //console.log(user)
@@ -184,8 +178,6 @@ const ElPriaveMessageBox = ()=>{
         }
       });
     }
-
-    //van.add(ElPublicKeys, )
   }
 
   async function viewMessages(){
@@ -250,8 +242,6 @@ const ElPriaveMessageBox = ()=>{
       //console.log("enc.....");
       //console.log(enc);
 
-      //console.log("sec.....");
-      //console.log(sec)
       await gun.get('~'+publicKey.val) 
         .get('privatemessage')
         .get(pkey)
@@ -293,30 +283,19 @@ const ElPriaveMessageBox = ()=>{
   }
 
   van.derive(()=>{
-    const messageNodes = messages.val;
+    const _messageNodes = messages.val;
     setTimeout(()=>{
       messageScrollBar();
     },100);
   });
-  //nope await display promise
-  const displayAlias = async ({id})=>{
-    const gun = gunState.val;
-    if(gun){
-      let gunUser = gun.user(id);
-      let who = await gunUser.then();
-      console.log(who);
-      if(who.alias){
-        label(who.alias);
-      }
-    }
-    return label("DNONE");
-  }
+
+  getMessagesPublicKeys();
 
   return div(
     div(
       label('Public Alias:'),
       ElPublicKeys,
-      button({onclick:()=>UpdatePublicMessages()},'Refresh'),
+      button({onclick:()=>getMessagesPublicKeys()},'Refresh'),
       input({value:publicKey,oninput:e=>publicKey.val=e.target.value})
     ),
     div(
