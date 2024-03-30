@@ -17,7 +17,7 @@
 
  Note that the SEA.pair() keys, SEA.certify() and Gun() graph nodes are handle in javascript query link chains nodes. 
  
- Gun Script has built in nodes for key and value system. Just like database but use different way a bit. There is "_" and "#" those I think are for pathing id and time stamp for key last time it change variable. To handle ref id node to get and put data for value.
+ Gun Script has built in nodes for key and value system. As well the peer to peer network. Just like database but use different way a bit. There is "_" and "#" those I think are for pathing id and time stamp for key last time it change variable. To handle ref id node to get and put data for value. As well trigger events for sync to peer to peer value change to other peer to see if node is link their events. It reason it change real time variable or value change that put data into the graph node system. For example user online status change variable. It will alert other users who follow public key.
 
  Is there way to delete those key value and the answer is yes and no as there is add on I think. But the righ answer is no. Since it peer to peer network as it restore data. The only way is to change the data is to null it. Since it check key if there change in value.
 
