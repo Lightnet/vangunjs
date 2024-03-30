@@ -15,7 +15,8 @@ import {
   publicKeyState,
   board
 } from '/context.js';
-import { routeTo } from '/vanjs-router.js';
+//import { routeTo } from '/vanjs-router.js';
+import { navigate } from "vanjs-routing";
 
 const {
   div, 
@@ -70,10 +71,12 @@ const EldefaultLogin= ()=>{
       console.log("PUB: ", ack.root.user.is.pub)
       //let node = await gun.user().then();
       //console.log("node: ",node);
-      routeTo('home');
+      //routeTo('home');
+      navigate('/',{replace:true});
     });
   }
-  function Cancel(){routeTo('home');}
+  //function Cancel(){routeTo('home');}
+  function Cancel(){navigate('/',{replace:true});}
   
   return div(
     table(

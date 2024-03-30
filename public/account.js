@@ -12,7 +12,7 @@ import {
   gunState,
   publicKeyState
 } from '/context.js';
-
+import { navigate } from "vanjs-routing";
 const {
   button, 
   div, 
@@ -53,6 +53,7 @@ const ElAccount = ()=>{
 
   return div(
     div(
+      button({onclick:()=>navigate('/',{replace:true})},'Back'),
       button({onclick:()=>view.val='profile'},'Profile'),
       button({onclick:()=>view.val='changepassphrase'},'Change Passphrase'),
       button({onclick:()=>view.val='hint'},'Hint'),

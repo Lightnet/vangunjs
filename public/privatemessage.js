@@ -10,6 +10,8 @@ import { routeTo } from '/vanjs-router.js';
 import { isLogin, gunState, aliasState} from '/context.js';
 import { Modal, MessageBoard } from "vanjs-ui";
 import {van} from '/dps.js';
+import { navigate } from "vanjs-routing";
+
 const {
   div, 
   button, input, textarea,
@@ -45,6 +47,7 @@ const ElPrivateMessage = ()=>{
 
   return div(
     div(
+      button({onclick:()=>navigate('/',{replace:true})},'Back'),
       button({onclick:()=>view.val='message'},' Message '),
       button({onclick:()=>view.val='compose'},' Compose '),
       button({onclick:()=>view.val='options'},' Options '),

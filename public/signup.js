@@ -8,7 +8,7 @@
 import {van} from '/dps.js';
 import { gunState, board } from '/context.js';
 import { QRCode } from '/qrcode.min.js';
-
+import { navigate } from "vanjs-routing";
 const {
   div,
   button,
@@ -62,7 +62,8 @@ const ElDefaultSignUp =()=>{
   }
 
   function btnCancel(){
-    routeTo('home')
+    //routeTo('home')
+    navigate('/',{replace:true})
   }
   
   return div(

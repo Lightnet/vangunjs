@@ -8,6 +8,12 @@
 // for group message
 // https://github.com/Lightnet/jsvuegunui/blob/main/src/components/groupmessage/GroupMessage.vue
 
+import { 
+  navigate, 
+  getRouterPathname, 
+  getRouterParams, 
+  getRouterQuery 
+} from "vanjs-routing";
 import {van} from '/dps.js';
 import { Modal } from 'vanjs-ui'; //modal
 const {
@@ -23,7 +29,7 @@ import {
   isLogin,
   board
 } from '/context.js';
-import { routeTo } from '/vanjs-router.js';
+//import { routeTo } from '/vanjs-router.js';
 import { gunUnixToDate } from './helper.js';
 import { ElDisplayAlias } from './account.js';
 //console.log(Modal);
@@ -96,9 +102,14 @@ const ELGroupMessageMenu =()=>{
         console.log("Not Member!");
         return;
       }
-      routeTo('groupmessageroom', [groupID.val]);
-      closed.val = true;
+      //routeTo('groupmessageroom', [groupID.val]);
+      board.show({message: "Join Member!", durationSec: 1});
+      navigate('/groupmessageroom/'+groupID.val,{replace:true})
+      //closed.val = true;
     }
+    //console.log("groupID.val: ", groupID.val)
+    //navigate('/room?id=yrdy',{replace:true});
+    //navigate(`/roomtest`,{replace:true});
   }
 
   function btnShowOptions(){
@@ -402,6 +413,7 @@ const ELGroupMessageMenu =()=>{
 
   return closed.val ? null : div(
     div(
+      button({onclick:()=>navigate('/',{replace:true})},'Back'),
       button({onclick:()=>refreshGroupMessages()},'Refresh'),
       label({onclick:()=>copyGroupMessageID()},"Group Messages:"),
       GroupMessageSel,
@@ -995,7 +1007,11 @@ const ElCerts = ({roomID})=>{
   )
 }
 
-const ELGroupMessageRoom =({api,groupID})=>{
+const ELGroupMessageRoom =()=>{
+
+  //console.log(getRouterPathname()); // "/home/learning/science"
+  //console.log(getRouterParams()); // { section: "learning", topic: "science" }
+  //console.log(getRouterQuery()); // { tab: "intro" }  
 
   const closed = van.state(false); //this will clean up I think.
   const closedAdmin = van.state(false);
@@ -1009,18 +1025,33 @@ const ELGroupMessageRoom =({api,groupID})=>{
   const isAdmin = van.state(false);
   //const gunNodeMessage = van.state(null);
 
-  van.derive(()=>{
-    //clean up if refresh that still hold render
-    //check if user is login and if not login it will close to clean up leaking...
-    if(isLogin.val == false){
-      closed.val = true;
-    }
+  van.derive(() => {
+    console.log("getRouterPathname: ",getRouterPathname()); // { section: "profile" }
+    let id = getRouterPathname().split("/")[2]
+    console.log("id: ",id)
+    _groupID.val = id;
   });
+
+  // van.derive(() => {
+  //   console.log("getRouterParams: ",getRouterParams()); // { section: "profile" }
+  // });
+
+  // van.derive(() => {
+  //   console.log("getRouterQuery: ",getRouterQuery()); // { section: "profile" }
+  // });
+
+  // van.derive(()=>{
+  //   //clean up if refresh that still hold render
+  //   //check if user is login and if not login it will close to clean up leaking...
+  //   if(isLogin.val == false){
+  //     closed.val = true;
+  //   }
+  // });
 
   //console.log("groupID:", groupID)
   van.derive(()=>{
     //console.log("groupID:", groupID);
-    _groupID.val = groupID;
+    //_groupID.val = groupID;
     let id = _groupID.val;
     //looping call?
     if(typeof id === 'string' && id.length > 0 && isInit.val == false){
@@ -1047,8 +1078,9 @@ const ELGroupMessageRoom =({api,groupID})=>{
       api({action:'leave'});
     }else{
       closed.val = true;
-      routeTo('groupmessage');
+      //routeTo('groupmessage');
     }
+    navigate('/',{replace:true});
     closed.val = true;
   }
 
@@ -1137,6 +1169,10 @@ const ELGroupMessageRoom =({api,groupID})=>{
         content:enc_content
       },(ack)=>{
         console.log(ack);
+        if(ack.err){
+          board.show({message: ack.err, durationSec: 1});
+        }
+        
       },{opt:{cert:cert}})
     });
 
@@ -1196,18 +1232,19 @@ const ELGroupMessageRoom =({api,groupID})=>{
 
   const currentRoomName = van.derive(()=>roomName.val);
 
-  checkGroupMessageInfo();
-
   function btnShowAdmin(){
     van.add(document.body, Modal({closed:closedAdmin},
       ElGroupMessageOptions({closed:closedAdmin,roomID:_groupID.val}),
     ))
   }
 
+  //checkGroupMessageInfo();
+
   //const isClosed = van.derive(()=>closed.val);
   //return isClosed ? null : div({id:_groupID.val},
   return closed.val ? null : div({id:_groupID.val},
     div(
+      //button({onclick:()=>navigate('/',{replace:true})},'Back'),
       button({onclick:()=>callLeave()},'Leave'),
       button({onclick:()=>showOptions()},'Options'),
       van.derive(()=>{
