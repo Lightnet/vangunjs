@@ -202,6 +202,8 @@ console.log(msg);
 
 # Notes:
  * Keep it simple.
+ * gun once event not turn off listen.
+ * leak gunInstance.
 
 ## Create pair user:
 ```js

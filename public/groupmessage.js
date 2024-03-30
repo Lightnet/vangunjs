@@ -8,46 +8,16 @@
 // for group message
 // https://github.com/Lightnet/jsvuegunui/blob/main/src/components/groupmessage/GroupMessage.vue
 
-import { 
-  navigate, 
-  getRouterPathname
-} from "vanjs-routing";
-import {van} from '/dps.js';
+import { navigate, getRouterPathname } from "vanjs-routing";
+import { van } from '/dps.js';
 import { Modal } from 'vanjs-ui'; //modal
-const {
-  button, div, label,
-  select, option,
-  input,
-  p,
-  table, tbody, tr, td, thead
-} = van.tags;
+const {button, div, label, select, option, input, p, table, tbody, tr, td, thead} = van.tags;
 
-import { 
-  gunState,
-  isLogin,
-  board
-} from '/context.js';
-//import { routeTo } from '/vanjs-router.js';
+import { gunState, isLogin, board } from '/context.js';
 import { gunUnixToDate } from './helper.js';
 import { ElDisplayAlias } from './account.js';
-//console.log(Modal);
 
-const ElGroupMessage = ()=>{
-
-  const view = van.state('lobby');
-
-  const viewRender = van.derive(()=>{
-    if(view.val == 'lobby'){
-      return ELGroupMessageMenu();
-    }
-  })
-
-  return div(
-    viewRender
-  );
-}
-
-const ELGroupMessageMenu =()=>{
+const ElGroupMessage =()=>{
   const closed = van.state(false);//create modal
   //const closedOptions = van.state(false);//create group
   const groupName = van.state('');
@@ -89,19 +59,19 @@ const ELGroupMessageMenu =()=>{
       const gun = gunState.val;
       const roomNode = gun.user(groupID.val);
       const user = gun.user();
-      console.log(user.is.pub);
+      //console.log(user.is.pub);
       let member = await roomNode.get('members').get(user.is.pub).then();
-      console.log("member: ", member)
+      //console.log("member: ", member)
       if(member){
         //need to check ban...
-        console.log("member: ", member);
+        //console.log("member: ", member);
         if(member?.ban==1){
           board.show({message: "Rejected current member is Ban !", durationSec: 1});
           return;
         }
       }else{
         board.show({message: "Reject Non Member!", durationSec: 1});
-        console.log("Not Member!");
+        //console.log("Not Member!");
         return;
       }
       //routeTo('groupmessageroom', [groupID.val]);
@@ -109,9 +79,6 @@ const ELGroupMessageMenu =()=>{
       navigate('/groupmessageroom/'+groupID.val,{replace:true})
       //closed.val = true;
     }
-    //console.log("groupID.val: ", groupID.val)
-    //navigate('/room?id=yrdy',{replace:true});
-    //navigate(`/roomtest`,{replace:true});
   }
 
   function btnShowOptions(){
@@ -127,7 +94,8 @@ const ELGroupMessageMenu =()=>{
   function btnCreate(){
     //console.log("create???")
     if(typeof groupName.val === 'string' && groupName.val.length === 0){
-      console.log("EMPTY!");
+      //console.log("EMPTY!");
+      board.show({message: "Empty Name!", durationSec: 1});
       return;
     }
     isModalCreate.val = true
@@ -136,7 +104,7 @@ const ELGroupMessageMenu =()=>{
   }
 
   function btnShowCreate(){
-    console.log("show create")
+    //console.log("show create");
     isModalCreate.val = false;
     van.add(document.body, Modal({closed:isModalCreate},
       p("Create Group Message!"),
@@ -150,14 +118,12 @@ const ELGroupMessageMenu =()=>{
 
   async function createGroupMessage(){
     const gun = gunState.val;
-
     let roomPair = await Gun.SEA.pair()
     //console.log(roomPair)
     let user = gun.user();
     //console.log(user)
     //console.log(user._.sea)
     let userPair = user._.sea;
-
     let sec = await Gun.SEA.secret(userPair.pub,userPair); // default?
 
     let roomData ={
@@ -168,10 +134,9 @@ const ELGroupMessageMenu =()=>{
 
     let encode = await Gun.SEA.encrypt(roomData,sec);
     //console.log(encode);
+    //generate share key
     const random_id = String.random(16);
-    
     user.get("groupmessages").get(random_id).put(encode);
-
     // Issue the wildcard certificate for all to write personal items to the 'profile'
     const cert_message = await Gun.SEA.certify( 
       '*',  // everybody is allowed to write
@@ -191,16 +156,9 @@ const ELGroupMessageMenu =()=>{
 
     const gunInstance = Gun(location.origin+"/gun");
     // https://gun.eco/docs/SEA.certify
-
-    // https://gun.eco/docs/SEA.certify
     // Authenticate with the room pair
     gunInstance.user().auth(roomPair, async () => {
-
-      // gunInstance.user()//for user register access
-      //   .get('pending')
-      //   .get(userPair.pub)
-      //   .put("true");
-
+      //need for look up key for decode.
       gunInstance.user()
         .get('epub')
         .put(roomPair.epub);
@@ -215,8 +173,9 @@ const ELGroupMessageMenu =()=>{
         .get('certs')
         .get('pending')
         .put(cert_pending);
-
+      //create share key
       const genSharekey = String.random(16);
+      //different key secert encode
       let dh = await SEA.secret(userPair.epub, roomPair);
       const enc_share_key = await SEA.encrypt(genSharekey, dh);
 
@@ -225,13 +184,6 @@ const ELGroupMessageMenu =()=>{
         .get('messages')
         .get(userPair.pub)
         .put(enc_share_key); // ?
-
-      // let passphrase = await SEA.secret(userPair.epub,roomPair);
-      // gunInstance.user()
-      //   .get('keys')
-      //   .get('messages')
-      //   .get(userPair.pub)
-      //   .put(passphrase); // ?
 
       let enc = await SEA.encrypt(roomPair, userPair)
       gunInstance.user()
@@ -251,9 +203,6 @@ const ELGroupMessageMenu =()=>{
 
       gunInstance.user().get('alias').put(groupName.val);
       gunInstance.user().get('information').put(groupInfo.val);
-      //not safe ?
-      //gunInstance.user().get('pub').put(roomPair.pub)
-      //gunInstance.user().get('epub').put(roomPair.epub)
     });
   }
 
@@ -264,17 +213,16 @@ const ELGroupMessageMenu =()=>{
     let userPair = user._.sea;
     groupMessages.val = new Map();
     user.get("groupmessages").map().once(async (data,key)=>{
-      console.log("data: ",data);
-      console.log("key: ",key);
+      //console.log("data: ",data);
+      //console.log("key: ",key);
       if (data == "null"){return;}
       if(data){
         let sec = await SEA.secret(userPair.pub,userPair) // default?
 
         let decode = await SEA.decrypt(data,sec);
-        console.log("decode: ", decode)
+        //console.log("decode: ", decode)
         if(decode){
           groupMessages.val = new Map(groupMessages.val.set(key, decode));
-          //setRooms(state=>[...state,decode])
           //console.log(groupMessages.val);
         }
       }
@@ -310,7 +258,7 @@ const ELGroupMessageMenu =()=>{
   }
 
   async function btnDeletegroupID(){
-    console.log(groupID.val);
+    //console.log(groupID.val);
     const gun = gunState.val;
     const room = gun.user(groupID.val);
     const roomData = await room.then();
@@ -323,18 +271,18 @@ const ELGroupMessageMenu =()=>{
 
     const nodes = groupMessages.val;
     for(const [key, groupData] of nodes){
-      console.log(groupData);
+      //console.log(groupData);
       if(groupData != "null"){
         if(groupData.pub == groupID.val){
-          console.log("FOUND!", groupData);
-          console.log("key", key);
+          //console.log("FOUND!", groupData);
+          //console.log("key", key);
           const gun = gunState.val;
           const user = gun.user();
 
           user.get("groupmessages").get(key).put("null");
           groupID.val = "";
-          let messageids = nodes.delete(key);
-          console.log(nodes);
+          nodes.delete(key);
+          //console.log(nodes);
           //if(messageids){//bool
             groupMessages.val = new Map(nodes); //update
           //}
@@ -346,6 +294,7 @@ const ELGroupMessageMenu =()=>{
   }
 
   //input public key input
+  //need check for admin
   van.derive(async ()=>{
     //console.log(groupID.val);
     const gun = gunState.val;
@@ -360,10 +309,9 @@ const ELGroupMessageMenu =()=>{
     const room = gun.user(groupID.val);
     //console.log("USER room:", room)
     const roomData = await room.then();
-    console.log("roomData: ", roomData);
+    //console.log("roomData: ", roomData);
     if(!roomData?.host){
-      isAdmin.val = false;
-      console.log("NO HOST!");
+      //console.log("NO HOST!");
       return;
     }
     let cert_pending = await room.get('certs').get('pending').then();
@@ -386,7 +334,7 @@ const ELGroupMessageMenu =()=>{
       }
     }
     let owner = await gun.user(pub).then();
-    console.log(owner);
+    //console.log(owner);
     if(!owner.alias){
       //console.log("Can't find Alias Name!");
       return;
@@ -475,16 +423,20 @@ const ElGroupInfo = ({
     const user = gun.user();
     const room = gun.user(pub);
     const roomData = await room.then();
-    console.log("roomData: ", roomData);
+    //console.log("roomData: ", roomData);
     const cert = await room.get("certs").get('pending').then();
-    console.log("cert: ", cert)
+    //console.log("cert: ", cert)
     const _pending = await room.get("pending").get(user._.sea.pub).then();
-    console.log("_pending:", _pending);
+    //console.log("_pending:", _pending);
     room.get("pending").get(user._.sea.pub).put("apply",
     (ack)=>{
-      console.log(ack);
+      //console.log(ack);
+      if(ack.err){
+        board.show({message: ack.err, durationSec: 1});
+        return;
+      }
+      board.show({message: "Alias Apply!", durationSec: 1});
     },{opt:{cert:cert}} )
-
   }
 
   return div(
@@ -558,7 +510,7 @@ const ElMembers = ({roomID})=>{
     const room = gun.user(roomID);
     const roomData = await room.then();
     if(!roomData.host){
-      console.log("NO HOST");
+      //console.log("NO HOST");
       return;
     }
 
@@ -577,40 +529,36 @@ const ElMembers = ({roomID})=>{
   }
 
   async function btnGrant(id){
-    console.log("id: ",id);
+    //console.log("id: ",id);
     const gun = gunState.val;
-
-    let to = gun.user(id);
-    let who = await to.then();
+    const to = gun.user(id);
+    const who = await to.then();
     if(!who.alias){
-      console.log("No Alias!");
+      //console.log("No Alias!");
       return;
     }
-    console.log("who: ", who);
-
+    //console.log("who: ", who);
     const user = gun.user();
     const userPair = user._.sea;
     const room = gun.user(groupID.val);
-    console.log(user.is.pub)
-    console.log(user._.sea)
+    //console.log("userPair: ", userPair)
     const enc_roomPair = await room.get('host').get(user.is.pub).then();
     if(!enc_roomPair){
-      console.log("NOT OWNER");
+      //console.log("NOT OWNER");
       return;
     }
-    console.log(enc_roomPair)
     const roomPair = await Gun.SEA.decrypt(enc_roomPair, user._.sea);
+    //console.log("roomPair: ", roomPair)
     //instance of gun
     const gunInstance = Gun(location.origin+"/gun");
     //auth to update data node
     gunInstance.user().auth(roomPair, async function(ack){
-      //gunInstance.user().get('pending').get(id).put('Rejected');
+      //encode key diff
       let dh = await Gun.SEA.secret(userPair.epub, roomPair);
       //get sharekey
       let enc_shareKey = await gunInstance.user().get('keys').get('messages').get(userPair.pub).then();
       let shareKey = await Gun.SEA.decrypt(enc_shareKey, dh);
-      console.log("shareKey: ", shareKey);
-
+      //console.log("shareKey: ", shareKey);
       //enc sharekey for new member
       let to_dh = await SEA.secret(who.epub, roomPair);
       enc_shareKey = await SEA.encrypt(shareKey, to_dh);
@@ -634,29 +582,27 @@ const ElMembers = ({roomID})=>{
   }
 
   async function btnRevoke(id){
-    console.log("id: ",id);
+    //console.log("id: ",id);
     const gun = gunState.val;
-
-    let to = gun.user(id);
-    let who = await to.then();
+    const to = gun.user(id);
+    const who = await to.then();
     if(!who.alias){
-      console.log("No Alias!");
+      //console.log("No Alias!");
       return;
     }
-    console.log("who: ", who);
-
+    //console.log("who: ", who);
     const user = gun.user();
     const userPair = user._.sea;
     const room = gun.user(groupID.val);
-    console.log("userPair: ", userPair)
+    //console.log("userPair: ", userPair)
     const enc_roomPair = await room.get('host').get(user.is.pub).then();
     if(!enc_roomPair){
-      console.log("NO OWNER");
+      //console.log("NO OWNER");
       return;
     }
     //console.log(enc_roomPair);
     const roomPair = await Gun.SEA.decrypt(enc_roomPair, user._.sea);
-    console.log("roomPair: ", roomPair);
+    //console.log("roomPair: ", roomPair);
 
     //instance of gun
     const gunInstance = Gun(location.origin+"/gun");
@@ -667,7 +613,7 @@ const ElMembers = ({roomID})=>{
       let enc_shareKey = await gunInstance.user().get('keys').get('messages').get(userPair.pub).then();
       let dh = await Gun.SEA.secret(userPair.epub, roomPair);
       let shareKey = await Gun.SEA.decrypt(enc_shareKey, dh);
-      console.log("shareKey: ", shareKey);
+      //console.log("shareKey: ", shareKey);
       //save backup admin only access
       gunInstance.user()
         .get("keyrecords")
@@ -676,16 +622,16 @@ const ElMembers = ({roomID})=>{
         .put(enc_shareKey);
 
       let genSharekey = String.random(16);
-      console.log("genSharekey: ", genSharekey);
+      //console.log("genSharekey: ", genSharekey);
 
       gunInstance.user().get("members").map().once(async (data,key)=>{
-        console.log("key:", key)
-        console.log("data:", data)
+        //console.log("key:", key)
+        //console.log("data:", data)
         let to = gun.user(key);
         let who = await to.then();
         //check for ban later...
         if(!who.alias){
-          console.log("No Alias!");
+          //console.log("No Alias!");
           return;
         }
         //enc key
@@ -706,7 +652,6 @@ const ElMembers = ({roomID})=>{
 
     });
 
-
   }
 
   function btnBan(id){
@@ -718,15 +663,15 @@ const ElMembers = ({roomID})=>{
     const user = gun.user();
     const userPair = user._.sea;
     const room = gun.user(groupID.val);
-    console.log(user.is.pub)
-    console.log(user._.sea)
+    //console.log(user.is.pub)
+    //console.log(user._.sea)
     const enc_roomPair = await room.get('host').get(user.is.pub).then();
     if(!enc_roomPair){
-      console.log("NOT OWNER");
+      //console.log("NOT OWNER");
       return;
     }
 
-    console.log(enc_roomPair)
+    //console.log(enc_roomPair)
     const roomPair = await Gun.SEA.decrypt(enc_roomPair, user._.sea);
     //instance of gun
     const gunInstance = Gun(location.origin+"/gun");
@@ -745,20 +690,19 @@ const ElMembers = ({roomID})=>{
         .put(enc_shareKey);
 
       let shareKey = await Gun.SEA.decrypt(enc_shareKey, dh);
-      console.log("shareKey: ", shareKey);
-
-      //
+      //console.log("shareKey: ", shareKey);
+      // create share key
       let genSharekey = String.random(16);
-      console.log("genSharekey: ", genSharekey);
+      //console.log("genSharekey: ", genSharekey);
 
       gunInstance.user().get("members").map().once(async (data,key)=>{
-        console.log("key:", key)
-        console.log("data:", data)
+        //console.log("key:", key)
+        //console.log("data:", data)
         let to = gun.user(key);
         let who = await to.then();
         //check for ban later...
         if(!who.alias){
-          console.log("No Alias!");
+          //console.log("No Alias!");
           return;
         }
         //enc key
@@ -771,7 +715,6 @@ const ElMembers = ({roomID})=>{
         .put(enc_share_key);
         
       });
-
 
     });
   }
@@ -787,7 +730,7 @@ const ElMembers = ({roomID})=>{
         let userDatas = [];
         let users = userRegisters.val;
         users.forEach( (data, key, map) => {
-          console.log(data);
+          //console.log(data);
           userDatas.push(tr(
             td(
               label({},data.alias),
@@ -837,17 +780,17 @@ const ElPending = ({roomID})=>{
     const room = gun.user(roomID);
     const roomData = await room.then();
     if(!roomData.host){
-      console.log("NO HOST");
+      //console.log("NO HOST");
       return;
     }
 
     room.get('pending').map().once(async (data,key)=>{
-      console.log("key:", key)
-      console.log("data:", data)
+      //console.log("key:", key)
+      //console.log("data:", data)
       let to = gun.user(key);
       let who = await to.then();
       if(!who.alias){
-        console.log("No Alias!");
+        //console.log("No Alias!");
         return;
       }
       //use map to prevent same copy over lap
@@ -856,25 +799,24 @@ const ElPending = ({roomID})=>{
   }
 
   async function btnApprove(id){
-    console.log("id: ",id);
+    //console.log("id: ",id);
     const gun = gunState.val;
 
     let to = gun.user(id);
     let who = await to.then();
     if(!who.alias){
-      console.log("No Alias!");
+      //console.log("No Alias!");
       return;
     }
-    console.log("who: ", who);
-
+    //console.log("who: ", who);
     const user = gun.user();
     const userPair = user._.sea;
     const room = gun.user(roomID);
-    console.log(user.is.pub)
-    console.log(user._.sea)
+    //console.log("userPair: ", userPair)
     const enc_roomPair = await room.get('host').get(user.is.pub).then();
-    console.log(enc_roomPair)
+    //console.log(enc_roomPair)
     const roomPair = await Gun.SEA.decrypt(enc_roomPair, user._.sea);
+    //console.log("roomPair: ", roomPair)
     //auth to update data node
     const gunInstance = Gun(location.origin+"/gun");
     gunInstance.user().auth(roomPair, async function(ack){
@@ -883,7 +825,7 @@ const ElPending = ({roomID})=>{
       //get sharekey
       let enc_shareKey = await gunInstance.user().get('keys').get('messages').get(userPair.pub).then();
       let shareKey = await Gun.SEA.decrypt(enc_shareKey, dh);
-      console.log("shareKey: ", shareKey);
+      //console.log("shareKey: ", shareKey);
 
       //enc sharekey for new member
       let to_dh = await SEA.secret(who.epub, roomPair);
@@ -905,6 +847,7 @@ const ElPending = ({roomID})=>{
           ban:0
         });
     });
+
   }
 
   async function btnReject(id){
@@ -968,24 +911,24 @@ const ElPending = ({roomID})=>{
 const ElCerts = ({roomID})=>{
 
   async function btnApplyMessage1Day(){
-    console.log("roomID: ", roomID)
+    //console.log("roomID: ", roomID)
     const gun = gunState.val;
     const user = gun.user();
     const room = gun.user(roomID);
     const roomData = await room.then();
     if(!roomData.host){
-      console.log("NO HOST");
+      //console.log("NO HOST");
       return;
     }
     let roomPair = {};
     const userPair = user._.sea;
-    console.log("userPair: ", userPair);
+    //console.log("userPair: ", userPair);
     let encRoomPair = await room.get('host').get(userPair.pub).then()
     //encRoomPair
     roomPair = await SEA.decrypt(encRoomPair, userPair);
-    console.log("roomPair: ",roomPair);
+    //console.log("roomPair: ",roomPair);
     if(!roomPair){
-      console.log("FAIL ROOM PAIR");
+      //console.log("FAIL ROOM PAIR");
       return;
     }
     let expireTime = Gun.state() + (60*60*25*1000);
@@ -994,12 +937,10 @@ const ElCerts = ({roomID})=>{
       '*',  // everybody is allowed to write
       { '*':'messages', '+': '*' }, // to the path that starts with 'message' and along with the key has the user's pub in it
       roomPair, //authority
-      (ack)=>{
-        console.log(ack);
-      }, //no need for callback here
+      null, //no need for callback here
       { expiry: expireTime } // Let's set a one day expiration period
     );
-    console.log("cert_messages: ", cert_messages)
+    //console.log("cert_messages: ", cert_messages)
 
     const gunInstance = Gun(location.origin+"/gun");
     gunInstance.user().auth(roomPair, async () => {
@@ -1010,43 +951,36 @@ const ElCerts = ({roomID})=>{
   }
 
   async function btnApplyPending1Day(){
-    console.log("roomID: ", roomID)
+    //console.log("roomID: ", roomID)
     const gun = gunState.val;
     const user = gun.user();
     const room = gun.user(roomID);
     const roomData = await room.then();
     if(!roomData.host){
-      console.log("NO HOST");
+      //console.log("NO HOST");
       return;
     }
     let roomPair = {};
     const userPair = user._.sea;
-    console.log("userPair: ", userPair);
+    //console.log("userPair: ", userPair);
     let encRoomPair = await room.get('host').get(userPair.pub).then()
     //encRoomPair
     roomPair = await SEA.decrypt(encRoomPair, userPair);
-    console.log("roomPair: ",roomPair);
+    //console.log("roomPair: ",roomPair);
     if(!roomPair){
-      console.log("FAIL ROOM PAIR");
+      //console.log("FAIL ROOM PAIR");
       return;
     }
     let expireTime = Gun.state() + (60*60*25*1000);
-
-    console.log(expireTime);
-    console.log(
-      gunUnixToDate(expireTime)
-    )
 
     const cert_pending = await Gun.SEA.certify( 
       '*',  // everybody is allowed to write
       { '*':'pending', '+': '*' }, // to the path that starts with 'message' and along with the key has the user's pub in it
       roomPair, //authority
-      (ack)=>{
-        console.log(ack);
-      }, //no need for callback here
+      null, //no need for callback here
       { expiry: expireTime } // Let's set a one day expiration period
     );
-    console.log("cert_pending: ", cert_pending)
+    //console.log("cert_pending: ", cert_pending)
 
     const gunInstance = Gun(location.origin+"/gun");
     gunInstance.user().auth(roomPair, async () => {
@@ -1070,10 +1004,6 @@ const ElCerts = ({roomID})=>{
 
 const ELGroupMessageRoom =()=>{
 
-  //console.log(getRouterPathname()); // "/home/learning/science"
-  //console.log(getRouterParams()); // { section: "learning", topic: "science" }
-  //console.log(getRouterQuery()); // { tab: "intro" }  
-
   const closed = van.state(false); //this will clean up I think.
   const closedAdmin = van.state(false);
   const roomName = van.state('None');
@@ -1087,27 +1017,11 @@ const ELGroupMessageRoom =()=>{
   //const gunNodeMessage = van.state(null);
 
   van.derive(() => {
-    console.log("getRouterPathname: ",getRouterPathname()); // { section: "profile" }
+    //console.log("getRouterPathname: ",getRouterPathname()); // { section: "profile" }
     let id = getRouterPathname().split("/")[2]
-    console.log("id: ",id)
+    //console.log("id: ",id)
     _groupID.val = id;
   });
-
-  // van.derive(() => {
-  //   console.log("getRouterParams: ",getRouterParams()); // { section: "profile" }
-  // });
-
-  // van.derive(() => {
-  //   console.log("getRouterQuery: ",getRouterQuery()); // { section: "profile" }
-  // });
-
-  // van.derive(()=>{
-  //   //clean up if refresh that still hold render
-  //   //check if user is login and if not login it will close to clean up leaking...
-  //   if(isLogin.val == false){
-  //     closed.val = true;
-  //   }
-  // });
 
   //console.log("groupID:", groupID)
   van.derive(()=>{
@@ -1116,7 +1030,7 @@ const ELGroupMessageRoom =()=>{
     let id = _groupID.val;
     //looping call?
     if(typeof id === 'string' && id.length > 0 && isInit.val == false){
-      console.log("id: ",id);
+      //console.log("id: ",id);
       isInit.val = true;
       initGroupMessage();
     }
@@ -1159,19 +1073,19 @@ const ELGroupMessageRoom =()=>{
     const userPair = user._.sea;
     gunInstance.user().auth(userPair, async () => {
 
-      console.log(user);
+      //console.log(user);
       if(!user.is){
-        console.log("user.is", user.is);
+        //console.log("user.is", user.is);
         return;
       }
       if(!userPair){
-        console.log("userPair", userPair);
+        //console.log("userPair", userPair);
         return;
       }
 
       const room = gunInstance.user(_groupID.val);
       let who = await room.then() || {};//get alias data
-      console.log("room Data: ",who);
+      //console.log("room Data: ",who);
       //TODO ENCODE
       if(!who.certs){console.log("No certs!");return;}
       let alias_obj = await room.get('host').then();
@@ -1188,15 +1102,15 @@ const ELGroupMessageRoom =()=>{
       //const cert = await room.get('certs').get('message').then();
       let encsharekey = await room.get('keys').get('messages').get(userPair.pub);
       if(encsharekey==null){
-        console.log("encsharekey NULL");
+        //console.log("encsharekey NULL");
         return;
       }
-      console.log(encsharekey);
+      //console.log(encsharekey);
       let dh = await SEA.secret(who.epub, userPair);
       let _shareKey = await SEA.decrypt(encsharekey, dh);
-      console.log("shareKey: ", _shareKey);
+      //console.log("shareKey: ", _shareKey);
       if(_shareKey==null){
-        console.log("shareKey NULL");
+        //console.log("shareKey NULL");
         return;
       }
       shareKey.val = _shareKey;
@@ -1205,21 +1119,18 @@ const ELGroupMessageRoom =()=>{
         //console.log("data: ", data);
         //console.log("key: ", key);
         let content = await Gun.SEA.decrypt(data.content, shareKey.val);
-
         //let content = data.content;
-        console.log("content: ",content);
+        //console.log("content: ",content);
         if(content){//check if exist
           messages.val = new Map(messages.val.set(key, {content:content}))
         }
       });
     });
 
-    //gunNodeMessage.val = room;
   }
 
   async function sentMessage(){
     //console.log("_groupID.val: ", _groupID.val);
-
     const gun = gunState.val;
     const user = gun.user();
     const userPair = user._.sea;
@@ -1239,18 +1150,15 @@ const ELGroupMessageRoom =()=>{
       room.get('messages').get(userPair.pub).get(Gun.state()).put({
         content:enc_content
       },(ack)=>{
-        console.log(ack);
+        //console.log(ack);
         if(ack.err){
           board.show({message: ack.err, durationSec: 1});
         }
-        
       },{opt:{cert:cert}})
     });
 
   }
-
-  //initGroupMessage();
-
+  
   function btnGetInfo(){
     console.log("_groupID: ",_groupID.val)
   }
@@ -1290,18 +1198,19 @@ const ELGroupMessageRoom =()=>{
       }
     }
     let owner = await gun.user(pub).then();
-    console.log(owner);
+    //console.log(owner);
     if(!owner.alias){
       //console.log("Can't find Alias Name!");
       return;
     }
-    console.log(roomData);
+    //console.log(roomData);
     roomName.val = roomData.alias;
   }
 
   const currentRoomName = van.derive(()=>roomName.val);
 
   function btnShowAdmin(){
+    closedAdmin.val = false;
     van.add(document.body, Modal({closed:closedAdmin},
       ElGroupMessageOptions({closed:closedAdmin,roomID:_groupID.val}),
     ))
@@ -1309,8 +1218,6 @@ const ELGroupMessageRoom =()=>{
 
   //checkGroupMessageInfo();
 
-  //const isClosed = van.derive(()=>closed.val);
-  //return isClosed ? null : div({id:_groupID.val},
   return closed.val ? null : div({id:_groupID.val},
     div(
       //button({onclick:()=>navigate('/',{replace:true})},'Back'),

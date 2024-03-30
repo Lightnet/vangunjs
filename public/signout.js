@@ -5,8 +5,8 @@
   Type: Javascript Module
 */
 
-import { van, routeTo } from '/dps.js';
-
+import { van } from '/dps.js';
+import { navigate } from "vanjs-routing";
 import { 
   gunState,
   isLogin,
@@ -14,8 +14,9 @@ import {
   publicKeyState
 } from '/context.js';
 import { MessageBoard } from "vanjs-ui";
+import { ElDisplayAlias } from './account.js';
 
-const {button} = van.tags;
+const {div, button, label } = van.tags;
 
 const btnSignOut = ()=>{
   const board = new MessageBoard({top: "20px"})
@@ -27,9 +28,15 @@ const btnSignOut = ()=>{
     aliasState.val = 'Guest';
     publicKeyState.val = '';
     board.show({message: "Logout!", durationSec: 1});
-    routeTo('home');
+    navigate('/',{replace:true})
   }
-  return button({onclick:()=>signout()},' Logout ');
+  return div(
+    label("Are you sure "),
+    ElDisplayAlias(),
+    ' ',
+    button({onclick:()=>signout()},' Logout '),
+    label(" ? "),
+  );
 }
 
 export {
