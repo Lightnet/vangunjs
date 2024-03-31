@@ -20,6 +20,7 @@ import { ElDisplayAlias } from './account.js';
 const ElGroupMessage =()=>{
   const closed = van.state(false);//create modal
   //const closedOptions = van.state(false);//create group
+  const closedDelete = van.state(false);
   const groupName = van.state('');
   const groupInfo = van.state('None');
   const groupID = van.state('');
@@ -28,6 +29,7 @@ const ElGroupMessage =()=>{
   const isModalCreate = van.state(true);
   const ElRoomInfo = div();
   const isAdmin = van.state(false);
+  const isLookUp = van.state(false)
 
   function onChangeGroupMessageSel(e){
     //console.log(e.target.value)
@@ -257,7 +259,20 @@ const ElGroupMessage =()=>{
 
   }
 
-  async function btnDeletegroupID(){
+  function showConfirmDeleteGroupID(){
+    //closed
+    closedDelete.val = false;
+    van.add(document.body, Modal({closed:closedDelete},
+      p("Delete Group Message Confirm!"),
+      input({value:groupID,readonly:true}),
+      div({style: "display: flex; justify-content: center;"},
+        button({onclick:()=>callDeletegroupID()}, "Ok"),
+        button({onclick:()=>closedDelete.val=true}, "Cancel")
+      ),
+    ));
+  }
+
+  async function callDeletegroupID(){
     //console.log(groupID.val);
     const gun = gunState.val;
     const room = gun.user(groupID.val);
@@ -290,6 +305,8 @@ const ElGroupMessage =()=>{
         }
       }
     }
+    ElRoomInfo.innerText = "";
+    closedDelete.val =true;
     //refreshGroupMessages();
   }
 
@@ -375,25 +392,62 @@ const ElGroupMessage =()=>{
   //init 
   refreshGroupMessages();
 
+  van.derive(()=>{
+    console.log(isLookUp.val);
+  })
+
   return closed.val ? null : div(
     div(
-      button({onclick:()=>navigate('/',{replace:true})},'Back'),
-      button({onclick:()=>refreshGroupMessages()},'Refresh'),
-      label({onclick:()=>copyGroupMessageID()},"Group Messages:"),
-      GroupMessageSel,
-      input({value:groupID,oninput:e=>groupID.val=e.target.value,placeholder:"Room ID Key"}),
-      button({onclick:()=>btnJoin()},'Join'),
-      button({onclick:()=>btnAddgroupID()},'Add'),
-      button({onclick:()=>btnDeletegroupID()},'Delete'),
-      button({onclick:()=>btnShowCreate()},'Create'),
-      button({onclick:()=>btnShowOptions()},'Options'),
+      div(
+        button({onclick:()=>navigate('/',{replace:true})},'Back'),
+        
+      ),
+      div(
+        button({onclick:()=>isLookUp.val=!isLookUp.val},
+          van.derive(()=>{
+            if(isLookUp.val){
+              return ' Search [x] / List [ ] '
+            }else{
+              return ' Search [ ] / List [x] '
+            }
+          })
+        )
+      ),
       van.derive(()=>{
-        if(isAdmin.val){
-          return button({onclick:()=>btnShowAdmin()},'Admin');
+        if(isLookUp.val){
+          return div(
+            div(
+              input({style:"width:256px;",value:groupID,oninput:e=>groupID.val=e.target.value,placeholder:"Group Message ID Key"}),
+            ),
+          )
         }else{
-          return button({disabled:true},'Admin');
+          return div(
+            div(
+              button({onclick:()=>refreshGroupMessages()},'Refresh'),
+              label({onclick:()=>copyGroupMessageID()},"Group Messages:"),
+            ),
+            div(
+              GroupMessageSel
+            ),
+          )
         }
       }),
+      div(
+        button({onclick:()=>btnJoin()},'Join'),
+        button({onclick:()=>btnAddgroupID()},'Add'),
+        button({onclick:()=>showConfirmDeleteGroupID()},'Delete'),
+        button({onclick:()=>btnShowCreate()},'Create'),
+        button({onclick:()=>btnShowOptions()},'Options'),
+      ),
+      div(
+        van.derive(()=>{
+          if(isAdmin.val){
+            return button({onclick:()=>btnShowAdmin()},'Admin');
+          }else{
+            return button({disabled:true},'Admin');
+          }
+        }),
+      )
     ),
     ElRoomInfo
   );
