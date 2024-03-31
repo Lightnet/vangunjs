@@ -5,7 +5,7 @@
   Type: Javascript Module
 */
 
-import {van} from '/dps.js';
+import van from 'van';
 import { MessageBoard } from "vanjs-ui";
 
 const versionState = van.state('0.0.1');

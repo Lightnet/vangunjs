@@ -5,11 +5,10 @@
   Type: Javascript Module
 */
 
-import { gunUnixToDate, unixTime, unixToDate } from './helper.js';
-import { routeTo } from '/vanjs-router.js';
-import { isLogin, gunState, aliasState} from '/context.js';
+import { gunUnixToDate, unixTime, unixToDate } from '../../libs/helper.js';
+import { isLogin, gunState, aliasState} from '../context.js';
 import { Modal, MessageBoard } from "vanjs-ui";
-import {van} from '/dps.js';
+import van from 'van';
 import { navigate } from "vanjs-routing";
 
 const {

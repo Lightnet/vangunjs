@@ -8,14 +8,14 @@
 // for group message
 // https://github.com/Lightnet/jsvuegunui/blob/main/src/components/groupmessage/GroupMessage.vue
 
-import { navigate, getRouterPathname } from "vanjs-routing";
-import { van } from '/dps.js';
+import { Router, Link, navigate, getRouterPathname, getRouterParams } from "vanjs-routing";
+import van from "vanjs-core";
 import { Modal } from 'vanjs-ui'; //modal
 const {button, div, label, select, option, input, p, table, tbody, tr, td, thead} = van.tags;
 
-import { gunState, isLogin, board } from '/context.js';
-import { gunUnixToDate } from './helper.js';
-import { ElDisplayAlias } from './account.js';
+import { gunState, isLogin, board } from '../context.js';
+import { gunUnixToDate } from '../../libs/helper.js';
+import { ElDisplayAlias } from '../account/account.js';
 
 const ElGroupMessage =()=>{
   const closed = van.state(false);//create modal
@@ -78,7 +78,9 @@ const ElGroupMessage =()=>{
       }
       //routeTo('groupmessageroom', [groupID.val]);
       board.show({message: "Join Member!", durationSec: 1});
-      navigate('/groupmessageroom/'+groupID.val,{replace:true})
+      //navigate('/groupmessageroom/'+groupID.val,{replace:true})
+      let url ='/groupmessageroom/'+groupID.val; 
+      navigate(url);
       //closed.val = true;
     }
   }
@@ -291,9 +293,7 @@ const ElGroupMessage =()=>{
         if(groupData.pub == groupID.val){
           //console.log("FOUND!", groupData);
           //console.log("key", key);
-          const gun = gunState.val;
           const user = gun.user();
-
           user.get("groupmessages").get(key).put("null");
           groupID.val = "";
           nodes.delete(key);
@@ -1056,7 +1056,7 @@ const ElCerts = ({roomID})=>{
   )
 }
 
-const ELGroupMessageRoom =()=>{
+function ELGroupMessageRoom(){
 
   const closed = van.state(false); //this will clean up I think.
   const closedAdmin = van.state(false);
@@ -1068,25 +1068,39 @@ const ELGroupMessageRoom =()=>{
   const shareKey = van.state('');
   const isInit = van.state(false);
   const isAdmin = van.state(false);
-  //const gunNodeMessage = van.state(null);
+  const gunNodeMessage = van.state(null);
 
   van.derive(() => {
-    //console.log("getRouterPathname: ",getRouterPathname()); // { section: "profile" }
-    let id = getRouterPathname().split("/")[2]
-    //console.log("id: ",id)
-    _groupID.val = id;
+    //console.log(getRouterParams()); // { section: "profile" }
+    const {roomid} = getRouterParams();
+    if(roomid){
+      console.log("FOUND");
+      _groupID.val = roomid;
+    }else{
+      console.log("NOT FOUND");
+    }
   });
 
-  //console.log("groupID:", groupID)
+  // van.derive(() => {
+  //   //console.log("getRouterPathname: ",getRouterPathname()); // { section: "profile" }
+  //   let id = getRouterPathname().split("/")[2]
+  //   //console.log("id: ",id)
+  //   _groupID.val = id;
+  // });
+
   van.derive(()=>{
     //console.log("groupID:", groupID);
     //_groupID.val = groupID;
     let id = _groupID.val;
     //looping call?
     if(typeof id === 'string' && id.length > 0 && isInit.val == false){
-      //console.log("id: ",id);
+      console.log("init room id: ",id);
       isInit.val = true;
-      initGroupMessage();
+      if(!gunNodeMessage.val){
+        console.log("gunNodeMessage.val: ", gunNodeMessage.val)
+        initGroupMessage();
+      }
+      
     }
   });
 
@@ -1116,9 +1130,9 @@ const ELGroupMessageRoom =()=>{
   async function initGroupMessage(){
     //console.log("init :", _groupID.val);
     //NEED gun instance for leaks and cleanup.
-    //if(gunNodeMessage.val){
-      //gunNodeMessage.val.off();//turn off listen
-    //}
+    if(gunNodeMessage.val){
+      gunNodeMessage.val.off();//turn off listen
+    }
 
     const gunInstance = Gun(location.origin+"/gun");
 
@@ -1126,7 +1140,6 @@ const ELGroupMessageRoom =()=>{
     const user = gun.user();
     const userPair = user._.sea;
     gunInstance.user().auth(userPair, async () => {
-
       //console.log(user);
       if(!user.is){
         //console.log("user.is", user.is);
@@ -1179,6 +1192,7 @@ const ELGroupMessageRoom =()=>{
           messages.val = new Map(messages.val.set(key, {content:content}))
         }
       });
+      gunNodeMessage.val = room.get('messages');
     });
 
   }

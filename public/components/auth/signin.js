@@ -7,8 +7,8 @@
 
 // https://gun.eco/docs/Auth
 
-import {van} from '/dps.js';
-import { isLogin, gunState, aliasState, publicKeyState, board } from '/context.js';
+import van from 'van';
+import { isLogin, gunState, aliasState, publicKeyState, board } from '/components/context.js';
 import { navigate } from "vanjs-routing";
 
 const {div, button, table, tbody, tr, td, input, label, textarea, center } = van.tags;

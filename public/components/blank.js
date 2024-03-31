@@ -5,7 +5,7 @@
   Type: Javascript Module
 */
 
-import {van} from '/dps.js';
+import van from 'van';
 const {button, div, pre, a , li, p, ul} = van.tags;
 
 const ElBLank = ()=>{

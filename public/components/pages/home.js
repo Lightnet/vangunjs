@@ -5,12 +5,9 @@
   Type: Javascript Module
 */
 
-import {van, routeTo} from '/dps.js';
+import van from 'van';
 import { navigate } from "vanjs-routing";
-import { 
-  isLogin,
-  aliasState 
-} from '/context.js';
+import { isLogin, aliasState } from '../context.js';
 
 const {button, div, pre, a , li, p, ul} = van.tags;
 
@@ -39,6 +36,7 @@ const ElHome = () =>{
     //button({ onclick: () => routeTo('about') }, 'About'),
     ' ',
     ElAccessRender,
+    button({onclick:()=>navigate("/help/profile")},'foo Help'),
   );
 }
 

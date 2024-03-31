@@ -5,16 +5,12 @@
   Type: Javascript Module
 */
 
-import { van } from '/dps.js';
-import { navigate } from "vanjs-routing";
-import { 
-  gunState,
-  isLogin,
-  aliasState,
-  publicKeyState
-} from '/context.js';
-import { MessageBoard } from "vanjs-ui";
-import { ElDisplayAlias } from './account.js';
+import van from 'van';
+import { MessageBoard } from 'vanjs-ui';
+import { navigate } from 'vanjs-routing';
+import { gunState, isLogin, aliasState, publicKeyState } from '../context.js';
+
+import { ElDisplayAlias } from '../account/account.js';
 
 const {div, button, label } = van.tags;
 
