@@ -17,7 +17,7 @@ import { ELSignin } from './signin.js';
 import { ELSignup } from './signup.js';
 import { ElHome } from './home.js';
 import { ELGroupMessageRoom, ElGroupMessage } from './groupmessage.js';
-import { ElAccount, ElDisplayAlias } from './account.js';
+import { ElAccount, ElForgot } from './account.js';
 import { btnSignOut } from './signout.js';
 import { ElPrivateMessage } from './privatemessage.js';
 
@@ -38,6 +38,7 @@ function App() {
       { path: "/signup", component: ELSignup },
       { path: "/signin", component: ELSignin },
       { path: "/signout", component: btnSignOut },
+      { path: "/forgot", component: ElForgot },
       { path: "/account", component: ElAccount },
       { path: "/privatemessage", component: ElPrivateMessage },
       { path: "/groupmessageroom/:name", component: ELGroupMessageRoom },

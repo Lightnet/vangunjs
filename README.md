@@ -144,9 +144,9 @@ console.log(msg);
     * [ ] private message layers
   * [x] account
     * [x] change passphrase
-    * [x] hint
+    * [x] set hint base work 2 parameters.
     * [ ] profile
-    * [ ] forgot passphrase
+    * [x] forgot passphrase hint
   * [x] group message (wip)
     * [x] create group (wip)
     * [x] join ( wip )

@@ -8,27 +8,10 @@
 // https://gun.eco/docs/Auth
 
 import {van} from '/dps.js';
-import { 
-  isLogin, 
-  gunState, 
-  aliasState,
-  publicKeyState,
-  board
-} from '/context.js';
-//import { routeTo } from '/vanjs-router.js';
+import { isLogin, gunState, aliasState, publicKeyState, board } from '/context.js';
 import { navigate } from "vanjs-routing";
 
-const {
-  div, 
-  button, 
-  table, 
-  tbody,
-  tr,
-  td,
-  input, 
-  label,
-  textarea
-} = van.tags;
+const {div, button, table, tbody, tr, td, input, label, textarea, center } = van.tags;
 
 const ELSignin = ()=>{
   const isPairLogin = van.state(false);
@@ -54,7 +37,7 @@ const EldefaultLogin= ()=>{
   const passphrase = van.state("012345678");
   const gun = gunState.val;
 
-  function login(){
+  function btnLogin(){
     //console.log(versionState.val)
     gun.user().auth(alias.val, passphrase.val, async function(ack){
       // done creating user!
@@ -76,7 +59,7 @@ const EldefaultLogin= ()=>{
     });
   }
   //function Cancel(){routeTo('home');}
-  function Cancel(){navigate('/',{replace:true});}
+  //function Cancel(){navigate('/',{replace:true});}
   
   return div(
     table(
@@ -98,12 +81,13 @@ const EldefaultLogin= ()=>{
           )
         ),
         tr(
-          td(
-            button({onclick:()=>login()},'Login'),      
+          td({colspan:"2"},
+            center(
+              button({onclick:()=>navigate('/',{replace:true})},'Cancel'),
+              button({onclick:()=>btnLogin()},'Login'),
+              button({onclick:()=>navigate('/forgot',{replace:false})},'Forgot')
+            )
           ),
-          td(
-            button({onclick:()=>Cancel()},'Cancel'),
-          )
         )
       )
     ),
