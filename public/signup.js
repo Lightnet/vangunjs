@@ -9,18 +9,7 @@ import {van} from '/dps.js';
 import { gunState, board } from '/context.js';
 import { QRCode } from '/qrcode.min.js';
 import { navigate } from "vanjs-routing";
-const {
-  div,
-  button,
-  table,
-  tbody,
-  tr,
-  td,
-  input, 
-  label,
-  textarea
-} = van.tags;
-import { routeTo } from '/vanjs-router.js';
+const {div, button, table, tbody, tr, td, input, label, textarea } = van.tags;
 
 const ELSignup = ()=>{
 
@@ -103,27 +92,24 @@ function download(filename, text) {
   var element = document.createElement('a');
   element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
   element.setAttribute('download', filename);
-
   element.style.display = 'none';
   document.body.appendChild(element);
-
   element.click();
-
   document.body.removeChild(element);
 }
 
 function save(filename, data) {
   const blob = new Blob([data], {type: 'text/plain'});
   if(window.navigator.msSaveOrOpenBlob) {
-      window.navigator.msSaveBlob(blob, filename);
+    window.navigator.msSaveBlob(blob, filename);
   }
   else{
-      const elem = window.document.createElement('a');
-      elem.href = window.URL.createObjectURL(blob);
-      elem.download = filename;        
-      document.body.appendChild(elem);
-      elem.click();        
-      document.body.removeChild(elem);
+    const elem = window.document.createElement('a');
+    elem.href = window.URL.createObjectURL(blob);
+    elem.download = filename;        
+    document.body.appendChild(elem);
+    elem.click();        
+    document.body.removeChild(elem);
   }
 }
 
@@ -131,16 +117,12 @@ const ElPairSignUp= ()=>{
   
   const pairKey = van.state('{}'); //string
   const isWorker = van.state(false);
-  const isBase64 = van.state(true);
+  //const isBase64 = van.state(true);
   const isDisplayQR = van.state(false);
   const isDisplayQR2 = van.state(false);
-
   const worker1 = van.state('');
   const worker2 = van.state('');
-
   const EncodePair = van.state('');
-
-  //const div_qr = div();
 
   async function generatePair(){
     var pair = await Gun.SEA.pair()
@@ -167,11 +149,12 @@ const ElPairSignUp= ()=>{
   async function copyPair(){
     try {
       await navigator.clipboard.writeText(pairKey.val);
-      console.log('Content copied to clipboard');
+      //console.log('Content copied to clipboard');
       board.show({message: "Copy!", durationSec: 2});
       /* Resolved - text copied to clipboard successfully */
     } catch (err) {
-      console.error('Failed to copy: ', err);
+      //console.error('Failed to copy: ', err);
+      board.show({message: err, durationSec: 2});
       /* Rejected - text failed to copy to the clipboard */
     }
   }
@@ -179,15 +162,16 @@ const ElPairSignUp= ()=>{
   async function copyWorkPair(){
     try {
       await navigator.clipboard.writeText(EncodePair.val);
-      console.log('Content copied to clipboard');
+      //console.log('Content copied to clipboard');
       board.show({message: "Copy!", durationSec: 2});
       /* Resolved - text copied to clipboard successfully */
     } catch (err) {
-      console.error('Failed to copy: ', err);
+      //console.error('Failed to copy: ', err);
+      board.show({message: err, durationSec: 2});
       /* Rejected - text failed to copy to the clipboard */
     }
-    let hash = await Gun.SEA.work('text', null, null, { name: 'SHA-256' });
-    console.log(hash);
+    //let hash = await Gun.SEA.work('text', null, null, { name: 'SHA-256' });
+    //console.log(hash);
   }
 
   function btnPairSignUp(){
@@ -195,20 +179,15 @@ const ElPairSignUp= ()=>{
     //console.log("pairKey.val: ",pairKey.val);
     const pair = JSON.parse(pairKey.val);
 
-    //user.create(JSON.parse(pairKey.val), function(ack){
-    gunInstance.user().auth(pair, async function(ack){
+    gunInstance.user().create(pair, function(ack){
+    //gunInstance.user().auth(pair, async function(ack){
       // done creating user!
       console.log(ack);
-
+      if(ack.err){
+        board.show({message: ack.err, durationSec: 2});
+        return;
+      }
       board.show({message: "Auth Pair!", durationSec: 2});
-      //gunInstance.user().get('alias').put(pair.pub)
-      //console.log(gunInstance.user());
-      //let name = await gunInstance.user().get('alias').then();
-      //console.log( "name: ", name);
-      //let node = await gunInstance.user().then();
-      //console.log(node);
-      //let node2 = await gunInstance.user(pair.pub).then();
-      //console.log(node2);
     });
   }
 
@@ -336,7 +315,8 @@ const ElPairSignUp= ()=>{
         }),
         tr({},
           td(
-            button({onclick:()=>btnPairSignUp()}, 'Register Pair')
+            button({onclick:()=>btnPairSignUp()}, 'Register Pair'),
+            button({onclick:()=>navigate('/',{replace:true})}, 'Cancel')
           )
         ),
       )

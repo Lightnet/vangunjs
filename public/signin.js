@@ -166,7 +166,9 @@ const ElPairLogin= ()=>{
         //   input({type:'checkbox',checked:isBase64,oninput:e=>isBase64.val=e.target.checked}),
         // ),
         tr(
-          button({onclick:()=>btnPaste()},'Paste Pair'),
+          td(
+            button({onclick:()=>btnPaste()},'Paste Pair'),
+          )
         ),
         tr(
           td(
@@ -175,8 +177,10 @@ const ElPairLogin= ()=>{
         ),
         //WORK CHECK
         tr(
-          label('Work Passphrase:'),
-          input({type:'checkbox',checked:isWorker,oninput:e=>isWorker.val=e.target.checked}),
+          td(
+            label('Work Passphrase:'),
+            input({type:'checkbox',checked:isWorker,oninput:e=>isWorker.val=e.target.checked}),
+          )
         ),
         van.derive(()=>{
           if(isWorker.val){
@@ -208,7 +212,8 @@ const ElPairLogin= ()=>{
         //LOGIN
         tr(
           td(
-            button({onclick:()=>btnPairLogin()},'Login')
+            button({onclick:()=>btnPairLogin()},'Login'),
+            button({onclick:()=>navigate('/',{replace:true})},'Cancel')
           )
         ),
       )
