@@ -111,7 +111,7 @@ const App=()=>{
           //console.log("room id: ",id);
           if(typeof id === 'string' && id.length === 0 && isUserLogin == true){
           }else{
-            console.log("SET ROOM ID", id);
+            //console.log("SET ROOM ID", id);
             roomID.val = id;
             //van.add(document.body, ELGroupMessageRoom({groupID:id}));
           }

@@ -51,7 +51,7 @@ const EldefaultLogin= ()=>{
       isLogin.val = true;
       aliasState.val = ack.root.user.is.alias;
       publicKeyState.val = ack.root.user.is.pub;
-      console.log("PUB: ", ack.root.user.is.pub)
+      //console.log("PUB: ", ack.root.user.is.pub)
       //let node = await gun.user().then();
       //console.log("node: ",node);
       //routeTo('home');
@@ -109,17 +109,17 @@ const ElPairLogin= ()=>{
     const user = gun.user();
     let pair = {};
     if(isWorker.val){
-      console.log("WORK");
+      //console.log("WORK");
       pair = workPair.val;
-      console.log(pair)
+      //console.log(pair)
     }else{
       pair = JSON.parse(pairKey.val);
     }
 
     user.auth(pair, (ack)=>{
-      console.log(ack);
+      //console.log(ack);
       if(ack.err){
-        console.log("BAD LOGIN");
+        //console.log("BAD LOGIN");
         return;
       }
       isLogin.val = true;
@@ -139,7 +139,7 @@ const ElPairLogin= ()=>{
 
     let sec = await Gun.SEA.work(worker1.val, worker2.val);
     let result = await Gun.SEA.decrypt(pairKey.val,sec);
-    console.log(result);
+    //console.log(result);
     if(result != null){
       workPair.val = result;
       van.add(ElWorkStatus,tr(td(label(' Status: PASS '))));
@@ -152,9 +152,10 @@ const ElPairLogin= ()=>{
     try {
       const text = await navigator.clipboard.readText()
       pairKey.val = text;
-      console.log('Text pasted.');
+      board.show({message: 'Text Pasted!', durationSec: 1});
+      //console.log('Text pasted.');
     } catch (error) {
-      console.log('Failed to read clipboard');
+      //console.log('Failed to read clipboard');
     }
   }
 

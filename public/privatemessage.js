@@ -59,8 +59,7 @@ const ElPrivateMessage = ()=>{
 }
 
 const ElPriaveMessageBox = ()=>{
-
-  const board = new MessageBoard({top: "20px"})
+  
   const publicKey = van.state('');
   const messages = van.state(new Map());
   const message = van.state('');
@@ -187,7 +186,7 @@ const ElPriaveMessageBox = ()=>{
     //console.log(userNode);
     if(userNode?.alias){
       const user = gun.user();
-      console.log("FOUND ALIAS FOR MESSAGE QUERY...");
+      //console.log("FOUND ALIAS FOR MESSAGE QUERY...");
       const pair = user._.sea;
       let dec = await Gun.SEA.secret(userNode.epub, pair);
       let node = await user.then();
@@ -198,22 +197,22 @@ const ElPriaveMessageBox = ()=>{
       }
 
       user.get('privatemessage').get(publicKey.val).map().once(async (data,key)=>{ //current user, from select pub
-        console.log("data: ",data);
-        console.log("key: ",key);
+        //console.log("data: ",data);
+        //console.log("key: ",key);
 
         let content = await Gun.SEA.decrypt(data.content, dec);
-        console.log(content);
+        //console.log(content);
         if(content){//make sure it not null or empty
           messages.val = new Map(messages.val.set(key,{alias:toAlias,pub:publicKey.val,date:key,content:content }))
         }
       });
 
       to.get('privatemessage').get(pair.pub).map().once(async (data,key)=>{// from select, current user
-        console.log("data: ",data);
-        console.log("key: ",key);
+        //console.log("data: ",data);
+        //console.log("key: ",key);
 
         let content = await Gun.SEA.decrypt(data.content, dec);
-        console.log(content);
+        //console.log(content);
         if(content){//make sure it not null or empty
           messages.val = new Map(messages.val.set(key,{alias:currentAlias,pub:pair.pub,date:key,content:content }))
         }
@@ -222,19 +221,19 @@ const ElPriaveMessageBox = ()=>{
   }
 
   async function sendMsg(){
-    console.log("SEND!");
+    //console.log("SEND!");
     const gun = gunState.val;
     if(gun){
       let timeStamp = Gun.state();
       let gunUser = gun.user();
       let pkey = await gunUser.get('pub');
-      console.log('pkey:',pkey)
+      //console.log('pkey:',pkey)
       
       let to = gun.user(publicKey.val);//get alias
       let who = await to.then() || {};//get alias data
       if(!who.alias){console.log("No Alias!");return;}
       const cert = await to.get('certs').get('privatemessage').then();
-      console.log(cert);
+      //console.log(cert);
 
       let sec = await Gun.SEA.secret(who.epub, gunUser._.sea); // Diffie-Hellman
       let enc_content = await Gun.SEA.encrypt(message.val, sec); //encrypt message
@@ -248,20 +247,20 @@ const ElPriaveMessageBox = ()=>{
         .get(timeStamp).put({
           content:enc_content
         },ack=>{
-          console.log(ack);
+          //console.log(ack);
           if(ack.err){
-            console.log('ERROR GUN PUT...');
+            //console.log('ERROR GUN PUT...');
             //sentStatus.innerText = "Error | Cert Fail!";
             board.show({message: "Cert Fail!", durationSec: 1});
             return;
           }
-          console.log('Gun Message Put...');
+          //console.log('Gun Message Put...');
           //sentStatus.innerText = "Put | Cert Pass!";
           board.show({message: "Cert Pass!", durationSec: 1});
         },{opt:{cert:cert}});
 
     }else{
-      console.log('gun error...');
+      //console.log('gun error...');
     }
   }
 
@@ -357,20 +356,20 @@ const ElPriaveMessageCompose = ()=>{
   // test VKWYPbLiFjKKqqqoUBIkjWmxUKVFK2qELxbzMxehhRA.CSs3ZpdSZfKzogwYq2SjFwbHQ2MSCnu7jnE7iiPABws
   // aaaa 
   async function btnSend(){
-    console.log('publicKey: ',publicKey.val);
-    console.log('message: ',message.val);
+    //console.log('publicKey: ',publicKey.val);
+    //console.log('message: ',message.val);
     const gun = gunState.val;
     if(gun){
       let timeStamp = unixTime();
       let gunUser = gun.user();
       let pkey = await gunUser.get('pub');
-      console.log('pkey:',pkey)
+      //console.log('pkey:',pkey)
       
       let to = gun.user(publicKey.val);//get alias
       let who = await to.then() || {};//get alias data
       if(!who.alias){console.log("No Alias!");return;}
       const cert = await to.get('certs').get('privatemessage').then();
-      console.log(cert);
+      //console.log(cert);
 
       let sec = await Gun.SEA.secret(who.epub, gunUser._.sea); // Diffie-Hellman
       let enc_content = await Gun.SEA.encrypt(message.val, sec); //encrypt message
@@ -386,23 +385,23 @@ const ElPriaveMessageCompose = ()=>{
         .get(timeStamp).put({
           content:enc_content
         },ack=>{
-          console.log(ack);
+          //console.log(ack);
           if(ack.err){
-            console.log('ERROR GUN PUT...');
+            //console.log('ERROR GUN PUT...');
             sentStatus.innerText = "Error | Cert Fail!";
             return;
           }
-          console.log('Gun Message Put...');
+          //console.log('Gun Message Put...');
           sentStatus.innerText = "Put | Cert Pass!";
         },{opt:{cert:cert}});
 
     }else{
-      console.log('gun error...');
+      //console.log('gun error...');
     }
   }
 
   async function btnCheckCert(){
-    console.log("CERT KEY");
+    //console.log("CERT KEY");
     if(publicKey.val != ""){
       const gun = gunState.val;
       let to = gun.user(publicKey.val);//get alias
@@ -412,21 +411,21 @@ const ElPriaveMessageCompose = ()=>{
       if(cert){
         //console.log(cert);
         let timeexp = parseInt(cert.split(",")[1].split(":")[1]);
-        console.log(gunUnixToDate(timeexp));
+        //console.log(gunUnixToDate(timeexp));
         //console.log(JSON.parse(cert));
       }
     }
   }
 
   async function checkPublicKey(){
-    console.log(publicKey.val);
+    //console.log(publicKey.val);
     if(publicKey.val != ""){
       const gun = gunState.val;
       const user = gun.user(publicKey.val)
       let alias = await user.get('alias').then();
       //let alias = "";
       if(alias){
-        console.log("alias: ",alias);
+        //console.log("alias: ",alias);
         publicKeyStatus.innerText = ""+alias;
 
         const cert = await user.get('certs').get('privatemessage').then();
@@ -440,13 +439,13 @@ const ElPriaveMessageCompose = ()=>{
         //return label("Status: FOUND "+alias);
         return;
       }
-      console.log("alias: ",alias);
+      //console.log("alias: ",alias);
       //return label("Status:NOT FOUND ");
       publicKeyStatus.innerText = "None";
       certStatus.innerText = "None";
       return;
     }
-    console.log("alias: ");
+    //console.log("alias: ");
     //return label("Status: None");
     publicKeyStatus.innerText = "None";
   }
@@ -530,7 +529,7 @@ const ElPriaveMessageBoxOptions = ()=>{
     gun.user()
     .get('certs')
     .get('privatemessage').once((data,key)=>{
-      console.log("data: ", data);
+      //console.log("data: ", data);
       //console.log("key: ", key);
       if(data){
         let timeexp = parseInt(data.split(",")[1].split(":")[1]);
@@ -600,7 +599,7 @@ const ElPriaveMessageBoxOptions = ()=>{
     .get('privatemessage')
     .put(cert);
 
-    console.log(numExpire.val);
+    //console.log(numExpire.val);
   }
 
   return div(

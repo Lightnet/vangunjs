@@ -39,7 +39,7 @@ const ElDefaultSignUp =()=>{
     //console.log(versionState.val)
     const gun = gunState.val;
     gun.user().create(alias.val, passphrase.val, async function(ack){
-      console.log(ack);
+      //console.log(ack);
       if(ack.err){
         //console.log("ERROR!");
         board.show({message: ack.err, durationSec: 2});
@@ -126,7 +126,7 @@ const ElPairSignUp= ()=>{
 
   async function generatePair(){
     var pair = await Gun.SEA.pair()
-    console.log(pair);
+    //console.log(pair);
     //div_qr.innerText = '';
     pairKey.val = JSON.stringify(pair);
     //van.add(div_qr, QRCode(pairKey.val));
@@ -182,7 +182,7 @@ const ElPairSignUp= ()=>{
     gunInstance.user().create(pair, function(ack){
     //gunInstance.user().auth(pair, async function(ack){
       // done creating user!
-      console.log(ack);
+      //console.log(ack);
       if(ack.err){
         board.show({message: ack.err, durationSec: 2});
         return;
