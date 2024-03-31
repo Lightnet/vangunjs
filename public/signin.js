@@ -85,6 +85,7 @@ const EldefaultLogin= ()=>{
             center(
               button({onclick:()=>navigate('/',{replace:true})},'Cancel'),
               button({onclick:()=>btnLogin()},'Login'),
+              button({onclick:()=>navigate('/signup',{replace:false})},'Sign Up'),
               button({onclick:()=>navigate('/forgot',{replace:false})},'Forgot')
             )
           ),
@@ -97,7 +98,7 @@ const EldefaultLogin= ()=>{
 const ElPairLogin= ()=>{
 
   const pairKey = van.state('{}');
-  const isBase64 = van.state(false);
+  //const isBase64 = van.state(false);
   const isWorker = van.state(false);
   const worker1 = van.state('');
   const worker2 = van.state('');
@@ -213,8 +214,11 @@ const ElPairLogin= ()=>{
         //LOGIN
         tr(
           td(
-            button({onclick:()=>btnPairLogin()},'Login'),
-            button({onclick:()=>navigate('/',{replace:true})},'Cancel')
+            center(
+              button({onclick:()=>btnPairLogin()},'Login'),
+              button({onclick:()=>navigate('/',{replace:true})},'Cancel'),
+              button({onclick:()=>navigate('/',{replace:true})},'Sign Up'),
+            )
           )
         ),
       )
