@@ -15,9 +15,9 @@ import { PrivateMessageOptions } from "../privatemessage/options.js";
 const { div } = van.tags;
 
 const PrivateMessagePage = () =>{
-  van.derive(()=>{
-    console.log(getRouterParams());
-  })
+  // van.derive(()=>{
+  //   console.log(getRouterParams());
+  // })
   return div(
     PrivateMessageMenus(),
     PrivateMessageInbox()

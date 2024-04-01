@@ -6,8 +6,8 @@
 */
 
 import van from 'van';
-import { gunState } from '../context.js';
-import { gunUnixToDate } from '../../libs/helper.js';
+import { board, gunState } from '../context.js';
+import { gunUnixToDate, unixToDate } from '../../libs/helper.js';
 
 const { div, button, input, textarea, label, table, tbody, tr, td, select, option } = van.tags;
 
@@ -45,17 +45,7 @@ const PrivateMessageInbox = ()=>{
     publicKey.val = e.target.value;
     //console.log(e.target.value);
     //console.log(publicKeys.val)
-
     const userNodes = new Map(publicKeys.val);
-    // ARRAY
-    //for(var i = 0; i < userNodes.length; i++ ){
-      //if(e.target.value == publicKeys.val[i].pub){
-        //aliasNode.innerText = publicKeys.val[i].alias;
-        //expireNode.innerText = publicKeys.val[i].cert;
-        //break;
-      //}
-    //}
-    
     // MAP
     let userData = userNodes.get(e.target.value);//public key
     if(userData){//user {alias:userNode.alias,pub:id,cert:certdata};
@@ -126,14 +116,10 @@ const PrivateMessageInbox = ()=>{
       let node = await user.then();
       let currentAlias = node.alias;
       let toAlias = userNode.alias;
-      if(!toAlias){
-        toAlias="unknown";
-      }
 
       user.get('privatemessage').get(publicKey.val).map().once(async (data,key)=>{ //current user, from select pub
         //console.log("data: ",data);
         //console.log("key: ",key);
-
         let content = await Gun.SEA.decrypt(data.content, dec);
         //console.log(content);
         if(content){//make sure it not null or empty
@@ -144,7 +130,6 @@ const PrivateMessageInbox = ()=>{
       to.get('privatemessage').get(pair.pub).map().once(async (data,key)=>{// from select, current user
         //console.log("data: ",data);
         //console.log("key: ",key);
-
         let content = await Gun.SEA.decrypt(data.content, dec);
         //console.log(content);
         if(content){//make sure it not null or empty
@@ -153,6 +138,7 @@ const PrivateMessageInbox = ()=>{
       });
     }
   }
+  //sent message
   async function sendMsg(){
     //console.log("SEND!");
     const gun = gunState.val;
@@ -204,7 +190,7 @@ const PrivateMessageInbox = ()=>{
   const scrollToBottom = (id) => {
     const element = document.getElementById(id);
     //console.log(element);
-    if(element){
+    if(element){//check if div or other elemenent exist id
       //console.log("move?")
       element.scrollTop = element.scrollHeight;
     }

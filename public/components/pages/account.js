@@ -12,7 +12,7 @@ import { accountChangePassphrase } from '../account/accountchangepassphrase.js';
 import { accountHint } from '../account/accounthint.js';
 import { accountCerts } from '../account/accountcerts.js';
 
-const {button, div, table, tbody, tr, td, label, input, center } = van.tags;
+const { div } = van.tags;
 
 const AccountPage = ()=>{
   return div(
