@@ -8,9 +8,15 @@
  * https://github.com/amark/gun
 
 # Information:
-  Rebuild from other project for gun.js sea.js for minimal chat messages. ES6 module javascript. Working on nodejs and bun.js (N/A)
+  Work in progress build.
 
-  By using the [vanjs](vanjs.org) to reduce html set up. To create user interface in javascript module browser. I use jquery before. So it almost but it has more features. One of the reason is keep the file size small but the current development it just testing the builds.
+  The project is broken up into components, routers and pages for easy modified those layout. Since the gun.js, sea.js and base graph node for peer to peer database. So no one own the server but peer to peer.
+
+  Think of block chain but using the key, value and graph nodes. As it does not differentiation who own the data or server. By using the SEA.js = Security, Encryption, & Authorization on top of gun.js database graph.
+
+  Build test for chat messages. ES6 module javascript. Working on nodejs and bun.js (N/A)
+
+  By using the [vanjs](vanjs.org) to reduce html set up. To create user interface in javascript module browser. Used jquery before as does help but it different methods. So it almost but it has more features. One of the reason is keep the keep it simple to development and easy to understand. It is just testing the builds.
 
 # Private Message:
  Note this is my own understanding a bit. It might right and wrong. Which require some testing.
