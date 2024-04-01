@@ -15,7 +15,7 @@ const {button, div, label, select, option, input, p, table, tbody, tr, td, thead
 
 import { gunState, isLogin, board } from '../context.js';
 import { gunUnixToDate } from '../../libs/helper.js';
-import { ElDisplayAlias } from '../account/account.js';
+import { DisplayAlias } from "../account/displayalias.js";
 
 const ElGroupMessage =()=>{
   const closed = van.state(false);//create modal
@@ -1299,7 +1299,7 @@ function ELGroupMessageRoom(){
         }
       }),
       label(" [Alias: "),
-      ElDisplayAlias(),
+      DisplayAlias(),
       ' ] ',
     ),
     div(

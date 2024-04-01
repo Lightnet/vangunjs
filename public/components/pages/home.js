@@ -11,7 +11,7 @@ import { isLogin, aliasState } from '../context.js';
 
 const {button, div, pre, a , li, p, ul} = van.tags;
 
-const ElHome = () =>{
+const HomePage = () =>{
 
   const userName = van.derive(() => aliasState.val);
 
@@ -36,11 +36,11 @@ const ElHome = () =>{
     //button({ onclick: () => routeTo('about') }, 'About'),
     ' ',
     ElAccessRender,
-    button({onclick:()=>navigate("/help/profile")},'foo Help'),
+    //button({onclick:()=>navigate("/help/profile")},'foo Help'),
   );
 }
 
 export{
-  ElHome
+  HomePage
 }
 

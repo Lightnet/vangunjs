@@ -9,8 +9,7 @@ import van from 'van';
 import { MessageBoard } from 'vanjs-ui';
 import { navigate } from 'vanjs-routing';
 import { gunState, isLogin, aliasState, publicKeyState } from '../context.js';
-
-import { ElDisplayAlias } from '../account/account.js';
+import { DisplayAlias } from '../account/displayalias.js';
 
 const {div, button, label } = van.tags;
 
@@ -28,10 +27,11 @@ const btnSignOut = ()=>{
   }
   return div(
     label("Are you sure "),
-    ElDisplayAlias(),
+    DisplayAlias(),
     ' ',
     button({onclick:()=>signout()},' Logout '),
     label(" ? "),
+    button({onclick:()=>navigate('/',{replace:true})},' Cancel '),
   );
 }
 
