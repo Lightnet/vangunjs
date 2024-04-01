@@ -144,40 +144,41 @@ const PrivateMessageInbox = ()=>{
     const gun = gunState.val;
     if(gun){
       let timeStamp = Gun.state();
-      let gunUser = gun.user();
-      let pkey = await gunUser.get('pub');
-      //console.log('pkey:',pkey)
+      const user = gun.user();
+      const userPair = user._.sea;
+      //console.log('userPair: ', userPair)
       
       let to = gun.user(publicKey.val);//get alias
       let who = await to.then() || {};//get alias data
       if(!who.alias){console.log("No Alias!");return;}
       const cert = await to.get('certs').get('privatemessage').then();
-      //console.log(cert);
+      //console.log("Cert: ", cert);
 
-      let sec = await Gun.SEA.secret(who.epub, gunUser._.sea); // Diffie-Hellman
+      let sec = await Gun.SEA.secret(who.epub, userPair); // Diffie-Hellman
       let enc_content = await Gun.SEA.encrypt(message.val, sec); //encrypt message
-      //let enc_subject = await gun.SEA.encrypt(subject, sec); //encrypt message
-      //console.log("enc.....");
-      //console.log(enc);
+      //console.log("enc_content:", enc_content);
 
-      await gun.get('~'+publicKey.val) 
-        .get('privatemessage')
-        .get(pkey)
-        .get(timeStamp).put({
-          content:enc_content
-        },ack=>{
-          //console.log(ack);
-          if(ack.err){
-            //console.log('ERROR GUN PUT...');
-            //sentStatus.innerText = "Error | Cert Fail!";
-            board.show({message: "Cert Fail!", durationSec: 1});
-            return;
-          }
-          //console.log('Gun Message Put...');
-          //sentStatus.innerText = "Put | Cert Pass!";
-          board.show({message: "Cert Pass!", durationSec: 1});
-        },{opt:{cert:cert}});
-
+      const gunInstance = Gun(location.origin+"/gun");
+      gunInstance.user().auth(userPair, async () => {
+        //await gun.get('~'+publicKey.val)
+        gunInstance.user(publicKey.val)//get user to send their by current login
+          .get('privatemessage')
+          .get(userPair.pub)
+          .get(timeStamp).put({
+            content:enc_content
+          },ack=>{
+            //console.log(ack);
+            if(ack.err){
+              //console.log('ERROR GUN PUT...');
+              //sentStatus.innerText = "Error | Cert Fail!";
+              board.show({message: "Cert Fail!", durationSec: 1});
+              return;
+            }
+            //console.log('Gun Message Put...');
+            //sentStatus.innerText = "Put | Cert Pass!";
+            board.show({message: "Cert Pass!", durationSec: 1});
+          },{opt:{cert:cert}});
+        });
     }else{
       //console.log('gun error...');
     }
