@@ -22,10 +22,13 @@ const PrivateMessageInbox = ()=>{
   const expireNode = label('None');
   const ElPublicKeys = select({style:"width:200px;",onclick:(e)=>onChangePublicKeys(e),onchange:(e)=>onChangePublicKeys(e)})
 
+  const messagelogs = div({id:"chatmessage",style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"});
+
   function clickSelect(e){
     console.log("clickSelect: ",e.target.value);
   }
 
+  // alias public keys list
   van.derive(()=>{
     const userNodes = publicKeys.val;
     //console.log(userNodes);
@@ -40,8 +43,10 @@ const PrivateMessageInbox = ()=>{
     }
   });
 
+  //select public key and update information on alias cert if exist
   function onChangePublicKeys(e){
-    messages.val = new Map();
+    messagelogs.innerText = '';
+    messages.val = new Map();//clear messages list
     publicKey.val = e.target.value;
     //console.log(e.target.value);
     //console.log(publicKeys.val)
@@ -67,6 +72,7 @@ const PrivateMessageInbox = ()=>{
     }
   }
   //https://github.com/vanjs-org/van/discussions/220
+  //get alias public keys from messages key node by map list
   function getMessagesPublicKeys(){
     const gun = gunState.val;
     const user = gun.user();
@@ -78,7 +84,6 @@ const PrivateMessageInbox = ()=>{
         //console.log("=====>");
         //console.log("user",data);
         //console.log("id",id);
-        //console.log(Gun.SEA.opt);
         //console.log(Gun.SEA.opt.pub(id));//will not work, work on "~key" or "@key"
         let _user = gun.user(id);
         let userNode = await _user.then();//graph node
@@ -124,6 +129,7 @@ const PrivateMessageInbox = ()=>{
         //console.log(content);
         if(content){//make sure it not null or empty
           messages.val = new Map(messages.val.set(key,{alias:toAlias,pub:publicKey.val,date:key,content:content }))
+          addCheckMessage(key,{alias:currentAlias,pub:pair.pub,date:key,content:content });
         }
       });
 
@@ -134,8 +140,11 @@ const PrivateMessageInbox = ()=>{
         //console.log(content);
         if(content){//make sure it not null or empty
           messages.val = new Map(messages.val.set(key,{alias:currentAlias,pub:pair.pub,date:key,content:content }))
+          addCheckMessage(key,{alias:currentAlias,pub:pair.pub,date:key,content:content });
         }
       });
+    }else{
+      board.show({message: "Invalid Public Key!", durationSec: 1});
     }
   }
   //sent message
@@ -147,6 +156,10 @@ const PrivateMessageInbox = ()=>{
       const user = gun.user();
       const userPair = user._.sea;
       //console.log('userPair: ', userPair)
+      if(typeof publicKey.val === 'string' && publicKey.val.length === 0){
+        console.log("Empty!");
+        return;
+      }
       
       let to = gun.user(publicKey.val);//get alias
       let who = await to.then() || {};//get alias data
@@ -201,12 +214,30 @@ const PrivateMessageInbox = ()=>{
     scrollToBottom("chatmessage");
   }
 
+  // scroll listen messages list update scroll.
   van.derive(()=>{
     const _messageNodes = messages.val;
     setTimeout(()=>{
       messageScrollBar();
     },100);
   });
+
+  function addCheckMessage(key, data){
+    const element = document.getElementById(key);
+    if(element){//if found update?
+      console.log("update?")
+    }else{
+      van.add(messagelogs,
+        div({id:key},
+          label(unixToDate(parseInt(data.date))),
+          label(" : "),
+          label(data.alias),
+          label(" :> "),
+          label(data.content),
+        )
+      )
+    }
+  }
 
   getMessagesPublicKeys();
 
@@ -226,30 +257,31 @@ const PrivateMessageInbox = ()=>{
     div(
       button({onclick:()=>viewMessages()},'View Message')
     ),
+    messagelogs,
     //messageList,
-    van.derive(()=>{
-      const messageNodes = messages.val;
-      //console.log( messageNodes);
-      let messageList = [];
-      //https://www.geeksforgeeks.org/how-to-convert-map-keys-to-an-array-in-javascript/
-      messageNodes.forEach((data, key) => {
-        messageList.push(
-        div({id:key},
-        label(unixToDate(parseInt(data.date))),
-        label(" : "),
-        label(data.alias),
-        label(" :> "),
-        label(data.content),
-        ));
-      });
-      // setTimeout(()=>{
-      //   messageScrollBar();
-      // },500);
-      //console.log(messageList);
-      return div({id:"chatmessage",style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"},
-        messageList
-      );
-    }),
+    // van.derive(()=>{
+    //   const messageNodes = messages.val;
+    //   //console.log( messageNodes);
+    //   let messageList = [];
+    //   //https://www.geeksforgeeks.org/how-to-convert-map-keys-to-an-array-in-javascript/
+    //   messageNodes.forEach((data, key) => {
+    //     messageList.push(
+    //     div({id:key},
+    //     label(unixToDate(parseInt(data.date))),
+    //     label(" : "),
+    //     label(data.alias),
+    //     label(" :> "),
+    //     label(data.content),
+    //     ));
+    //   });
+    //   // setTimeout(()=>{
+    //   //   messageScrollBar();
+    //   // },500);
+    //   //console.log(messageList);
+    //   return div({id:"chatmessage",style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"},
+    //     messageList
+    //   );
+    // }),
     van.derive(()=>{
       if(isAccess.val){
         return div(
