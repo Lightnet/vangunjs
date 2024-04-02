@@ -9,7 +9,7 @@ import van from 'van';
 import { navigate } from "vanjs-routing";
 import { isLogin, aliasState } from '../context.js';
 
-const {button, div, pre, a , li, p, ul} = van.tags;
+const {button, div} = van.tags;
 
 const HomePage = () =>{
 

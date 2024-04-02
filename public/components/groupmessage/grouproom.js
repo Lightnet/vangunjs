@@ -1,3 +1,10 @@
+/*
+  Project Name: vangunjs
+  License: MIT
+  Created By Lightnet
+  Type: Javascript Module
+*/
+
 //tests
 
 import van from 'vanjs-core';

@@ -8,6 +8,7 @@
 import van from 'van';
 import { board, gunState } from '../context.js';
 import { gunUnixToDate, unixToDate } from '../../libs/helper.js';
+import { UISelectContacts } from './contacts.js';
 
 const { div, button, input, textarea, label, table, tbody, tr, td, select, option } = van.tags;
 
@@ -21,12 +22,9 @@ const PrivateMessageInbox = ()=>{
   const aliasNode = label('None');
   const expireNode = label('None');
   const ElPublicKeys = select({style:"width:200px;",onclick:(e)=>onChangePublicKeys(e),onchange:(e)=>onChangePublicKeys(e)})
+  const isScroll = van.state(true);
 
   const messagelogs = div({id:"chatmessage",style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"});
-
-  function clickSelect(e){
-    console.log("clickSelect: ",e.target.value);
-  }
 
   // alias public keys list
   van.derive(()=>{
@@ -38,7 +36,7 @@ const PrivateMessageInbox = ()=>{
       for (const [key, userData] of userNodes) {
         //console.log(`${key} = ${userData}`);
         //console.log(userData);
-        van.add(ElPublicKeys, option({value:key,onclick:()=>clickSelect(key)},userData.alias));
+        van.add(ElPublicKeys, option({value:key},userData.alias));
       }
     }
   });
@@ -198,7 +196,8 @@ const PrivateMessageInbox = ()=>{
   }
 
   function toggleScroll(){
-
+    isScroll.val = !isScroll.val;
+    console.log(isScroll.val);
   }
 
   const scrollToBottom = (id) => {
@@ -246,7 +245,8 @@ const PrivateMessageInbox = ()=>{
       label('Public Alias:'),
       ElPublicKeys,
       button({onclick:()=>getMessagesPublicKeys()},'Refresh'),
-      input({value:publicKey,oninput:e=>publicKey.val=e.target.value})
+      input({value:publicKey,oninput:e=>publicKey.val=e.target.value}),
+      UISelectContacts(),
     ),
     div(
       label('Alias:'),aliasNode
