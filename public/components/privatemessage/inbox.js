@@ -245,7 +245,7 @@ const PrivateMessageInbox = ()=>{
       label('Public Alias:'),
       ElPublicKeys,
       button({onclick:()=>getMessagesPublicKeys()},'Refresh'),
-      input({value:publicKey,oninput:e=>publicKey.val=e.target.value}),
+      input({value:publicKey,oninput:e=>publicKey.val=e.target.value,placeholder:"Public Key"}),
       UISelectContacts(),
     ),
     div(

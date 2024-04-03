@@ -17,10 +17,10 @@ import { gunState, isLogin } from '/components/context.js';
 import { ELSignin } from './auth/signin.js';
 import { ELSignup } from './auth/signup.js';
 import { btnSignOut } from './auth/signout.js';
-import { ELGroupMessageRoom, ElGroupMessage } from './groupmessage/groupmessage.js';
 import { ElForgot } from './auth/forgot.js';
 import { PrivateMessagePage, PrivateMessageComposePage, PrivateMessageOptionsPage } from './pages/privatemessage.js';
 import { AccountCertsPage, AccountChangePassphrasePage, AccountHintPage, AccountPage } from './pages/account.js';
+import { GroupMessagePage, RoomMessagePage } from './pages/groupmessage.js';
 
 //const { div, p, button, label } = van.tags;
 
@@ -49,8 +49,9 @@ function App() {
       { path: "/privatemessage/options", component: PrivateMessageOptionsPage },
       //{ path: "/privatemessage/:view/:id", component: PrivateMessagePage },
       //Group Message Page
-      { path: "/groupmessage", component: ElGroupMessage },
-      { path: "/groupmessageroom/:roomid", component: ELGroupMessageRoom },
+      //{ path: "/groupmessage", component: ElGroupMessage },
+      { path: "/groupmessage", component: GroupMessagePage },
+      { path: "/groupmessageroom/:roomid", component: RoomMessagePage },
       //{ path: "/groupmessageroom/:roomid", component: GroupRoomComponent },
       //{ path: "/help/:section", component: HelpComponent }
     ]

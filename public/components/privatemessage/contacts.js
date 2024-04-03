@@ -77,15 +77,16 @@ function UISelectContacts(){
       } ,userPair);
       gunInstance.user().get('contacts').get(random_id).put(enc);
     });
+    board.show({message: "Added Public Key!", durationSec: 1});
   }
 
   async function removeContact(){
     if(typeof publicKey.val === 'string' && publicKey.val.length === 0){
-      console.log("EMPTY!");
+      //console.log("EMPTY!");
       return;
     }
     if(typeof idKey.val === 'string' && idKey.val.length === 0){
-      console.log("EMPTY!");
+      //console.log("EMPTY!");
       return;
     }
     const gun = gunState.val;
@@ -95,14 +96,15 @@ function UISelectContacts(){
     let to = gun.user(publicKey.val);
     let who = await to.then();
     if(!who.alias){
-      console.log("NOT FOUND!")
+      //console.log("NOT FOUND!")
       return;
     }
 
     gunInstance.user().auth(userPair, async () => {
-      gunInstance.user().get('contacts').get(idKey.val).put("null");
+      gunInstance.user().get('contacts').get(idKey.val).put("null");//remove data by change data can't be delete
       console.log("DELETE ALIAS CONTACT!")
     });
+    board.show({message: "Deleted Public Key!", durationSec: 1});
 
   }
 
@@ -150,7 +152,7 @@ function UISelectContacts(){
         )
       }else{
         return fragment(
-          input({value:publicKey,oninput:typeLookUp}),
+          input({value:publicKey,oninput:typeLookUp,placeholder:"add public key"}),
           button({onclick:addContact},'+'),
           button({onclick:removeContact},'-'),
         )
