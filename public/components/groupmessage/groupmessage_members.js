@@ -157,7 +157,7 @@ const GroupMessageMembers = ({roomID})=>{
         }
         //enc key
         let enc_share_key = "null";
-        if(data.ban == 1){
+        if(data?.ban == 1){
           //if ban default "null" as string
         }else{
           let dh = await SEA.secret(who.epub, roomPair);
@@ -218,7 +218,10 @@ const GroupMessageMembers = ({roomID})=>{
 
       gunInstance.user().get("members").map().once(async (data,key)=>{
         //console.log("key:", key)
-        //console.log("data:", data)
+        console.log("data:", data)
+        if(data?.ban==1){
+          return;
+        }
         let to = gun.user(key);
         let who = await to.then();
         //check for ban later...
