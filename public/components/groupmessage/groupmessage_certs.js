@@ -8,14 +8,14 @@
 // for group message
 // https://github.com/Lightnet/jsvuegunui/blob/main/src/components/groupmessage/GroupMessage.vue
 
-import { Router, Link, navigate, getRouterPathname, getRouterParams } from "vanjs-routing";
+//import { Router, Link, navigate, getRouterPathname, getRouterParams } from "vanjs-routing";
 import van from "vanjs-core";
-import { Modal } from 'vanjs-ui'; //modal
+//import { Modal } from 'vanjs-ui'; //modal
 const {button, div, label, select, option, input, p, table, tbody, tr, td, thead} = van.tags;
 
 import { gunState, isLogin, board } from '../context.js';
-import { gunUnixToDate } from '../../libs/helper.js';
-import { DisplayAlias } from "../account/displayalias.js";
+// import { gunUnixToDate } from '../../libs/helper.js';
+// import { DisplayAlias } from "../account/displayalias.js";
 
 
 const GroupMessageCerts = ({roomID})=>{

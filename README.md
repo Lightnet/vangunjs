@@ -18,6 +18,12 @@
 
   By using the [vanjs](vanjs.org) to reduce html set up. To create user interface in javascript module browser. Used jquery before as does help but it different methods. So it almost but it has more features. One of the reason is keep the keep it simple to development and easy to understand. It is just testing the builds.
 
+# Gun.js Database graph node:
+  Gun Graph database. One is server and other client. As features of graph node, key and value. Read more on this site link. https://gun.eco/docs/RAD One reason is reduce data size.
+
+# Security, Encryption, & Authorization - SEA.js:
+  This added layer on gun graph node. It will loop throught those nodes to make those keys are vaild user who own and write the data. With the certify it would be easy to handle write permission. Note it take time to process the data.
+
 # Private Message:
  Note this is my own understanding a bit. It might right and wrong. Which require some testing.
 
@@ -112,18 +118,19 @@ console.log(msg);
   https://gun.eco/docs/SEA
 
 # Group Message:
-  It is tricky to set up group message since it need pair keys to talk to group of users. As well write permission with permits.
+  It is tricky to set up group message since it need pair keys to talk to group of users. As well write permission with cert permits.
 
-  If there another user join without permission they can view graph nodes.
+  If there another user join without permission they can view graph nodes. But they can't decode without the keys or post.
 
-  There current two ways. One is encypted message that still is public. The other is share key is add another layer. Don't forget about the SEA.certify(). It never set the expire date to none.
+  There current couple ways.
 
-# Gun
-  Gun Graph database. One is server and other client. As features of graph node, key and value. Read more on this site link. https://gun.eco/docs/RAD One reason is reduce data size.
+  One there is public without encrypted.
 
-# Security, Encryption, & Authorization - SEA:
-  This added layer on gun graph node. It will loop throught those nodes to make those keys are vaild user who own and write the data. With the certify it would be easy to handle write permission. Note it take time to process the data.
+  Two there is pair encrypted. By using the different key in two pairs. But it compromise if pair is take over by someone else.
 
+  Three there is share key encrypted. In case the pair compromise.
+  
+  Don't forget about the SEA.certify(). It never set the expire date to none.
 
 # Features:
  * UI
@@ -131,9 +138,9 @@ console.log(msg);
     * [x] alias (name, passphrase)
     * [x] pair (json {pub, epub, epriv, priv})
       * [x] sea work (encode (param1, param2))
-      * [ ] upload file
+      * [ ] upload file ?
       * [x] paste pair
-      * [ ] QR Code
+      * [ ] QR Code ?
   * [ ] sign up (wip)
     * [x] alias (name, passphrase)
     * [x] pair (json {pub, epub, epriv, priv})
@@ -164,14 +171,13 @@ console.log(msg);
       * [x] member list
          * [x] grant access
          * [x] revoke access
-         * [ ] ban access ?
+         * [ ] cert nodes
       * [x] certify (public and private access graph node write)
         * [x] pending for register pub key for access (wip)
           * [x] approve
           * [x] reject
         * [x] message pulbic for pub key (wip)
       * [ ] encrypt key ( encode message )
-      * [ ] blacklist ?
       * [ ] delete ( N/A , is it possible? ) ?
 
 # Blacklist:

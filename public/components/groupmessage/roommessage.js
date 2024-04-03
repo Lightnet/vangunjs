@@ -8,16 +8,13 @@
 //tests
 
 import van from "vanjs-core";
-import { Router, Link, navigate, getRouterPathname, getRouterParams } from "vanjs-routing";
+import { navigate, getRouterPathname, getRouterParams } from "vanjs-routing";
 import { Modal } from 'vanjs-ui'; //modal
 
 const {button, div, label, select, option, input, p, table, tbody, tr, td, thead} = van.tags;
 import { gunState, isLogin, board } from '../context.js';
-import { gunUnixToDate } from '../../libs/helper.js';
 import { DisplayAlias } from "../account/displayalias.js";
 import { GroupMessageAdminPanel } from "./groupmessage_admin.js";
-
-
 
 function ELGroupMessageRoom(){
 
@@ -39,24 +36,16 @@ function ELGroupMessageRoom(){
     if(roomid){
       console.log("FOUND");
       _groupID.val = roomid;
+      if(typeof roomid === 'string' && roomid.length > 0 && isInit.val == false){
+        console.log("init room id: ",roomid);
+        isInit.val = true;
+        if(!gunNodeMessage.val){
+          console.log("gunNodeMessage.val: ", gunNodeMessage.val)
+          initGroupMessage();
+        }
+      }
     }else{
       console.log("NOT FOUND");
-    }
-  });
-
-  van.derive(()=>{
-    //console.log("groupID:", groupID);
-    //_groupID.val = groupID;
-    let id = _groupID.val;
-    //looping call?
-    if(typeof id === 'string' && id.length > 0 && isInit.val == false){
-      console.log("init room id: ",id);
-      isInit.val = true;
-      if(!gunNodeMessage.val){
-        console.log("gunNodeMessage.val: ", gunNodeMessage.val)
-        initGroupMessage();
-      }
-      
     }
   });
 
@@ -109,6 +98,7 @@ function ELGroupMessageRoom(){
       const room = gunInstance.user(_groupID.val);
       let who = await room.then() || {};//get alias data
       //console.log("room Data: ",who);
+      roomName.val = who.alias;
       //TODO ENCODE
       if(!who.certs){console.log("No certs!");return;}
       let alias_obj = await room.get('host').then();
@@ -202,35 +192,6 @@ function ELGroupMessageRoom(){
 
   }
 
-  async function checkGroupMessageInfo(){
-    const groupId = _groupID.val;
-    const gun = gunState.val;
-    const user = gun.user();
-    const room = gun.user(groupId);
-    const roomData = await gun.user(groupId).then();
-
-    //isAdmin.val
-    let alias_obj = await room.get('host').then();
-    let alias_keys = Object.keys(alias_obj);
-    let pub = "";
-    for(let i = 0;i < alias_keys.length;++i){
-      if(Gun.SEA.opt.pub("~"+alias_keys[i])){
-        if(alias_keys[i] == userPair.pub){
-          isAdmin.val = true;
-          break;
-        }
-      }
-    }
-    let owner = await gun.user(pub).then();
-    //console.log(owner);
-    if(!owner.alias){
-      //console.log("Can't find Alias Name!");
-      return;
-    }
-    //console.log(roomData);
-    roomName.val = roomData.alias;
-  }
-
   const currentRoomName = van.derive(()=>roomName.val);
 
   function btnShowAdmin(){
@@ -239,8 +200,6 @@ function ELGroupMessageRoom(){
       GroupMessageAdminPanel({closed:closedAdmin,roomID:_groupID.val}),
     ))
   }
-
-  //checkGroupMessageInfo();
 
   return closed.val ? null : div({id:_groupID.val},
     div(
@@ -274,7 +233,6 @@ function ELGroupMessageRoom(){
     )
   )
 }
-
 
 export {
   ELGroupMessageRoom

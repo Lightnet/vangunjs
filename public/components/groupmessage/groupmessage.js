@@ -8,17 +8,18 @@
 // for group message
 // https://github.com/Lightnet/jsvuegunui/blob/main/src/components/groupmessage/GroupMessage.vue
 
+//need to cert for member public key expire each person.
+
 import { Router, Link, navigate, getRouterPathname, getRouterParams } from "vanjs-routing";
 import van from "vanjs-core";
 import { Modal } from 'vanjs-ui'; //modal
 const {button, div, label, select, option, input, p, table, tbody, tr, td, thead} = van.tags;
 
-import { gunState, isLogin, board } from '../context.js';
+import { gunState, board } from '../context.js';
 import { gunUnixToDate } from '../../libs/helper.js';
-import { DisplayAlias } from "../account/displayalias.js";
 import { GroupMessageAdminPanel } from "./groupmessage_admin.js";
 
-const ElGroupMessage =()=>{
+const GroupMessageLobby =()=>{
   const closed = van.state(false);//create modal
   //const closedOptions = van.state(false);//create group
   const closedDelete = van.state(false);
@@ -477,11 +478,11 @@ const ElGroupInfo = ({
     const gun = gunState.val;
     const user = gun.user();
     const room = gun.user(pub);
-    const roomData = await room.then();
+    //const roomData = await room.then();
     //console.log("roomData: ", roomData);
     const cert = await room.get("certs").get('pending').then();
     //console.log("cert: ", cert)
-    const _pending = await room.get("pending").get(user._.sea.pub).then();
+    //const _pending = await room.get("pending").get(user._.sea.pub).then();
     //console.log("_pending:", _pending);
     room.get("pending").get(user._.sea.pub).put("apply",
     (ack)=>{
@@ -519,5 +520,5 @@ const ElGroupInfo = ({
 };
 
 export {
-  ElGroupMessage
+  GroupMessageLobby
 }

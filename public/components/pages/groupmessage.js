@@ -5,16 +5,16 @@
   Type: Javascript Module
 */
 
-import van from 'van';
-import { ElGroupMessage } from '../groupmessage/groupmessage.js';
+//import van from 'van';
+import { GroupMessageLobby } from '../groupmessage/groupmessage.js';
 import { ELGroupMessageRoom } from '../groupmessage/roommessage.js';
+//const { div } = van.tags;
 
-const { div } = van.tags;
-
+//main group message
 const GroupMessagePage = ()=>{
-  return ElGroupMessage();
+  return GroupMessageLobby();
 }
-
+//chat room messages
 const RoomMessagePage = ()=>{
   return ELGroupMessageRoom();
 }

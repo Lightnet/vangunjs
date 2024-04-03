@@ -9,7 +9,9 @@ import 'https://cdn.jsdelivr.net/npm/gun/gun.js';
 import 'https://cdn.jsdelivr.net/npm/gun/sea.js';
 //import van from 'vanjs-core';
 //import van from 'van';
-import { Router, Link, getRouterParams, navigate } from "vanjs-routing";
+import { Router
+  //, Link, getRouterParams, navigate 
+} from "vanjs-routing";
 
 import { HomePage } from './pages/home.js';
 
@@ -32,7 +34,6 @@ function App() {
     //basename: "", // Optional base name (All links are now prefixed with '/vanjs-routing')
     routes: [
       { path: "/", component: HomePage },
-      //{ path: "/", component: HomeComponent },
       //AUTH
       { path: "/signup", component: ELSignup },
       { path: "/signin", component: ELSignin },
@@ -47,41 +48,11 @@ function App() {
       { path: "/privatemessage", component: PrivateMessagePage },
       { path: "/privatemessage/compose", component: PrivateMessageComposePage },
       { path: "/privatemessage/options", component: PrivateMessageOptionsPage },
-      //{ path: "/privatemessage/:view/:id", component: PrivateMessagePage },
       //Group Message Page
-      //{ path: "/groupmessage", component: ElGroupMessage },
       { path: "/groupmessage", component: GroupMessagePage },
       { path: "/groupmessageroom/:roomid", component: RoomMessagePage },
-      //{ path: "/groupmessageroom/:roomid", component: GroupRoomComponent },
-      //{ path: "/help/:section", component: HelpComponent }
     ]
   });
 }
-
-// function HomeComponent() {
-//   return div(
-//     p("Home"), 
-//     Link({ href: "/about?foo=bar" }, "Goto About"),
-//     ' ',
-//     Link({ href: "/help/profile" }, "Goto Help"),
-//     ' ',
-//     button({onclick:()=>navigate("/about?foo=bar")},'foo about'),
-//     ' ',
-//     button({onclick:()=>navigate("/help/profile")},'foo Help'),
-//     ' ',
-//   );
-// }
-
-// function HelpComponent() {
-//   van.derive(() => {
-//     console.log(getRouterParams()); // { section: "profile" }
-//   });
-
-//   return div(
-//     p("Help"),
-//     Link({ href: "/" }, "Back to Home"),
-//     button({ onclick: () => navigate("/") }, "Home")
-//   );
-// }
 
 export default App;
