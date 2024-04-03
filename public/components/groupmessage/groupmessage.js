@@ -10,10 +10,10 @@
 
 //need to cert for member public key expire each person.
 
-import { Router, Link, navigate, getRouterPathname, getRouterParams } from "vanjs-routing";
+import { Link, navigate, getRouterPathname, getRouterParams } from "vanjs-routing";
 import van from "vanjs-core";
 import { Modal } from 'vanjs-ui'; //modal
-const {button, div, label, select, option, input, p, table, tbody, tr, td, thead} = van.tags;
+const {button, div, label, select, option, input, br, p, table, tbody, tr, td, thead} = van.tags;
 
 import { gunState, board } from '../context.js';
 import { gunUnixToDate } from '../../libs/helper.js';
@@ -420,6 +420,8 @@ const GroupMessageLobby =()=>{
           return div(
             div(
               input({style:"width:256px;",value:groupID,oninput:e=>groupID.val=e.target.value,placeholder:"Group Message ID Key"}),
+              button({onclick:()=>btnAddgroupID()},'Add'),
+              button({onclick:()=>showConfirmDeleteGroupID()},'Delete'),
             ),
           )
         }else{
@@ -429,17 +431,21 @@ const GroupMessageLobby =()=>{
               label({onclick:()=>copyGroupMessageID()},"Group Messages:"),
             ),
             div(
-              GroupMessageSel
+              GroupMessageSel,
+              button({onclick:()=>showConfirmDeleteGroupID()},'Delete'),
             ),
           )
         }
       }),
       div(
-        button({onclick:()=>btnJoin()},'Join'),
-        button({onclick:()=>btnAddgroupID()},'Add'),
-        button({onclick:()=>showConfirmDeleteGroupID()},'Delete'),
+        br()
+      ),
+      div(
+        button({style:"width:256px",onclick:()=>btnJoin()},'Join'),
+      ),
+      div(
         button({onclick:()=>btnShowCreate()},'Create'),
-        button({onclick:()=>btnShowOptions()},'Options'),
+        //button({onclick:()=>btnShowOptions()},'Options'),
       ),
       div(
         van.derive(()=>{

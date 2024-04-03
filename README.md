@@ -257,3 +257,15 @@ gunInstance.user().auth("alias", "passphrase", async function(ack){
   //pub
 });
 ```
+
+# Set up and Run:
+
+Set up packages by command line. Note you need to install nodejs.
+```
+npm install
+```
+
+Run server.
+```
+npm run dev
+```
