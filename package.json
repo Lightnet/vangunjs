@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "node index.js",
-    "devb":"bun run index.js",
+    "devb":"bun run bunserver.js",
     "start":"nodejs index.js"
   },
   "keywords": [],
