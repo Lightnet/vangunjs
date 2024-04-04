@@ -6,6 +6,10 @@
 
 # Links:
  * https://github.com/amark/gun
+ * https://vanjs.org/
+
+# Test build:
+ * https://glitch.com/edit/#!/vangunjs
 
 # Information:
   Work in progress build.

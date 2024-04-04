@@ -4,8 +4,13 @@
   "description": "",
   "main": "index.js",
   "type": "module",
+  "engines": {
+    "node": "14.x"
+  },
   "scripts": {
-    "dev": "node index.js"
+    "dev": "node index.js",
+    "devb":"bun run index.js",
+    "start":"nodejs index.js"
   },
   "keywords": [],
   "author": "",
