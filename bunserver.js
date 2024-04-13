@@ -5,7 +5,7 @@
 var public_path = "public"; //folder
 
 function fetch(req, server) {
-  const success = server.upgrade(req);
+  const success = server.upgrade(req);//websocket
   console.log("success: ",success)
   if (success) {
     // Bun automatically returns a 101 Switching Protocols
@@ -42,15 +42,14 @@ const server = Bun.serve({
       //ws.send(`You said: ${message}`);
     },
     open(ws) {
-      console.log("open")
+      console.log("ws open")
     }, // a socket is opened
     close(ws, code, message) {
-      console.log("close")
+      console.log("ws close")
     }, // a socket is closed
     drain(ws) {
-      console.log("drain")
+      console.log("ws drain")
     }, // the socket is ready to receive more data
-
   },
 	port: 1337
 })

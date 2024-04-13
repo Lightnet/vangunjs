@@ -26,6 +26,8 @@ const PrivateMessageInbox = ()=>{
 
   const messagelogs = div({id:"chatmessage",style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"});
 
+  const ChatModal = van.state(false)
+
   // alias public keys list
   van.derive(()=>{
     const userNodes = publicKeys.val;
@@ -240,6 +242,15 @@ const PrivateMessageInbox = ()=>{
 
   getMessagesPublicKeys();
 
+  function inputChatMessageEnter(e){
+    message.val=e.target.value;
+    //console.log(e)
+    if (e.key === 'Enter' || e.keyCode === 13){
+      //console.log("ENTER");
+      sendMsg();
+    }
+  }
+
   return div(
     div(
       label('Public Alias:'),
@@ -258,34 +269,10 @@ const PrivateMessageInbox = ()=>{
       button({onclick:()=>viewMessages()},'View Message')
     ),
     messagelogs,
-    //messageList,
-    // van.derive(()=>{
-    //   const messageNodes = messages.val;
-    //   //console.log( messageNodes);
-    //   let messageList = [];
-    //   //https://www.geeksforgeeks.org/how-to-convert-map-keys-to-an-array-in-javascript/
-    //   messageNodes.forEach((data, key) => {
-    //     messageList.push(
-    //     div({id:key},
-    //     label(unixToDate(parseInt(data.date))),
-    //     label(" : "),
-    //     label(data.alias),
-    //     label(" :> "),
-    //     label(data.content),
-    //     ));
-    //   });
-    //   // setTimeout(()=>{
-    //   //   messageScrollBar();
-    //   // },500);
-    //   //console.log(messageList);
-    //   return div({id:"chatmessage",style:"background-color:lightgray;width:800px;height:400px;overflow: scroll;"},
-    //     messageList
-    //   );
-    // }),
     van.derive(()=>{
       if(isAccess.val){
         return div(
-          input({value:message,oninput:e=>message.val=e.target.value}),
+          input({value:message,oninput:e=>message.val=e.target.value,onkeyup: inputChatMessageEnter}),
           button({onclick:()=>sendMsg()},'Send'),
           button({onclick:()=>toggleScroll()},'Auto Scroll'),
         )
@@ -294,6 +281,13 @@ const PrivateMessageInbox = ()=>{
       }
     }),
   );
+}
+
+function PMUserMessageBox({publickey}){
+
+
+
+  return div();
 }
 
 export {
